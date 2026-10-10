@@ -11,6 +11,7 @@ g() { $T show -gv "$1" 2>/dev/null; }
 check "config loads without errors" '[ ! -s "$err" ]'
 check "prefix unchanged (C-s)" '[ "$(g prefix)" = C-s ]'
 check "status on top" '[ "$(g status-position)" = top ]'
+check "window list centered" '[ "$(g status-justify)" = centre ]'
 check "transparent bar" '[[ $(g status-style) == *"bg=default"* ]]'
 check "session pill lilac" '[[ $(g status-left) == *"#9a8cc8"*"#S"* ]]'
 check "pill caps are real glyphs" '[[ $(g status-left) == *$'"'"''"'"'* ]]'
