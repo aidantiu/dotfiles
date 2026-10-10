@@ -119,8 +119,9 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# For git
-eval "$(starship init bash)"
+# Prompt: Nightswim (starship disabled — uncomment to roll back)
+# eval "$(starship init bash)"
+[ -f ~/dotfiles/bash/prompt.sh ] && . ~/dotfiles/bash/prompt.sh
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm

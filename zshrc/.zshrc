@@ -2,7 +2,8 @@
 # Kiro CLI pre block. Keep at the top of this file.
 [[ -f "${HOME}/.local/share/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/.local/share/kiro-cli/shell/zshrc.pre.zsh"
 
-eval "$(starship init zsh)"
+# Starship disabled (Nightswim rice uses a hand-written bash prompt)
+# eval "$(starship init zsh)"
 
 
 autoload -U +X bashcompinit && bashcompinit
