@@ -1,0 +1,65 @@
+# Nightswim — palette in ~/dotfiles/nightswim/palette.sh
+[general]
+live_config_reload = true
+
+[window]
+opacity = 0.82
+decorations = "None"
+startup_mode = "Maximized"
+padding = { x = 14, y = 14 }
+dynamic_padding = true
+
+[font]
+normal = { family = "0xProto Nerd Font Mono", style = "Regular" }
+size = 11.0
+
+[scrolling]
+history = 50000
+
+[cursor]
+style = { shape = "Block", blinking = "Off" }
+
+[colors.primary]
+background = "#0e1328"
+foreground = "#d6cfe8"
+
+[colors.cursor]
+text = "#0e1328"
+cursor = "#e8a95b"
+
+[colors.selection]
+text = "CellForeground"
+background = "#2a2f55"
+
+[colors.normal]
+black = "#0e1328"
+red = "#c9566b"
+green = "#5f8a7a"
+yellow = "#e8a95b"
+blue = "#5a6fb8"
+magenta = "#b07ab8"
+cyan = "#5f9bb0"
+white = "#bdb3d6"
+
+[colors.bright]
+black = "#3b4170"
+red = "#e07a8c"
+green = "#86b3a0"
+yellow = "#f4c57f"
+blue = "#8497d6"
+magenta = "#d79bc9"
+cyan = "#8cc4d4"
+white = "#e6e0f2"
+
+# Ctrl+Shift+O: open URLs with xdg-open
+[[hints.enabled]]
+command = "xdg-open"
+hyperlinks = true
+post_processing = true
+binding = { key = "O", mods = "Control|Shift" }
+
+# Shift+Enter sends ESC+CR (newline in Claude Code and similar TUIs)
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+chars = "\u001B\r"

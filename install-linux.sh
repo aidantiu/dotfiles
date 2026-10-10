@@ -34,5 +34,7 @@ link git/.gitconfig      "$HOME/.gitconfig"
 link git/.config/git     "$HOME/.config/git"
 # nvim
 link nvim                "$HOME/.config/nvim"
+# alacritty
+link alacritty           "$HOME/.config/alacritty"
 
 [ -f "$HOME/.secrets.sh" ] || echo "note: create ~/.secrets.sh for API keys (sourced by .bashrc, never committed)"
