@@ -3,3 +3,7 @@ tmux/plugins/
 raycast
 fzf
 history.txt
+
+# local-only secrets
+.secrets.sh
+*.secrets.sh

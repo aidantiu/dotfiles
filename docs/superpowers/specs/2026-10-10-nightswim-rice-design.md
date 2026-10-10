@@ -82,14 +82,14 @@ Layout:
 
 ## 5. tmux — `tmux/nightswim.conf`
 
-- The live `~/.tmux.conf` (prefix `^S`, `bash -l`) differs from the repo's omerxx `tmux/tmux.conf` (prefix `^A`). **The live file is the source of truth**: it is copied over `tmux/tmux.conf`, then catppuccin plugin + its options are removed and `source-file ~/.config/tmux/nightswim.conf` is added. Other plugins and keybinds are kept.
+- `tmux/tmux.conf` is now the user's live config (prefix `^S`, `bash -l`), symlinked to `~/.tmux.conf`. Catppuccin plugin + its options are removed and `source-file ~/.config/tmux/nightswim.conf` is added. Other plugins and keybinds are kept.
 - Copy-mode `wl-copy` → `xclip -in -selection clipboard` (session is X11); install `xclip` if missing.
 - `status-position top`, `status-style bg=default`, `status-justify left`.
 - Left: `` session `` in lilac pill (fg `#0e1328`).
 - Windows: inactive `#I #W` in dim lilac text; current window in gold pill.
 - Right: `%H:%M` in surface pill.
 - Pane borders `#2a2f55`, active `#9a8cc8`; message/mode styles from palette.
-- `~/.tmux.conf` (current hand-edited copy) backed up, then `~/.config/tmux` symlinked to repo `tmux/`.
+- `nightswim.conf` linked to `~/.config/tmux/nightswim.conf`.
 
 ## 6. Extras
 
@@ -114,8 +114,9 @@ dotfiles/
   tmux/        tmux.conf, nightswim.conf (existing dir)
 ```
 - Existing repo convention is per-tool dirs linked manually / `stow .`. Linking is done by an idempotent `nightswim/install.sh` that creates explicit symlinks (`ln -sfn`), since `stow .` from repo root would link macOS-only dirs too.
-- Before linking: back up `~/.bashrc`, `~/.tmux.conf`, `~/.config/alacritty`, `~/.gitconfig` to `~/.rice-backup-2026-10-10/`.
-- `.bashrc` itself stays local (contains machine-specific nvm etc.); only a `source ~/dotfiles/bash/...` block is appended.
+- **Done already (pre-rice):** `.bashrc`, `.profile`, `.bash_profile`, `~/bashconfigs`, `.zshrc`, `.zprofile`, `.tmux.conf`, `.gitconfig`, `~/.config/git`, `~/.config/nvim` live in the repo and are symlinked by `install-linux.sh`. Secrets moved to untracked `~/.secrets.sh`.
+- Rice changes edit the repo files directly (`bash/.bashrc` gets `source` lines for `prompt.sh` / `nightswim-env.sh`); new links (alacritty, fastfetch, cava, `~/.config/tmux/nightswim.conf`) are added to `install-linux.sh`.
+- Before changing behavior, back up to `~/.rice-backup-2026-10-10/`.
 
 ## Error handling / rollback
 

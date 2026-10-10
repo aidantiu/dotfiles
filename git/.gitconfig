@@ -1,0 +1,18 @@
+# Personal identity (default)
+[user]
+    name = ymnw.r
+    email = tiuprof77@gmail.com
+
+# Automatically use work identity inside ~/Documents/work/
+[includeIf "gitdir:~/Documents/work/"]
+    path = ~/.gitconfig-work
+
+# Keep your GitHub work SSH rewrite rule
+[url "git@github.com-work:"]
+[http "https://git.ymnwri.com"]
+	extraheader = CF-Access-Client-Id: YOUR_NEW_ID
+	extraheader = CF-Access-Client-Secret: YOUR_NEW_SECRET
+[credential]
+	helper = store
+[http]
+	sslVerify = true
