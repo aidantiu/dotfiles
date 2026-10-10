@@ -82,7 +82,7 @@ Layout:
 
 ## 5. tmux — `tmux/nightswim.conf`
 
-- `tmux/tmux.conf` is now the user's live config (prefix `^S`, `bash -l`), symlinked to `~/.tmux.conf`. Catppuccin plugin + its options are removed and `source-file ~/.config/tmux/nightswim.conf` is added. Other plugins and keybinds are kept.
+- `tmux/tmux.conf` is now the user's live config (prefix `^S`, `bash -l`), symlinked to `~/.tmux.conf`. Catppuccin plugin + its options are removed and `source-file ~/dotfiles/tmux/nightswim.conf` is added. Other plugins and keybinds are kept.
 - Copy-mode `wl-copy` → `xclip -in -selection clipboard` (session is X11); install `xclip` if missing.
 - `status-position top`, `status-style bg=default`, `status-justify left`.
 - Left: `` session `` in lilac pill (fg `#0e1328`).
