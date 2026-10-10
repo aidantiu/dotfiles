@@ -19,4 +19,11 @@ PY'
 log=$(timeout 10 alacritty -vv --config-file "$CFG" -e true 2>&1)
 check "no config errors/warnings" '! grep -qE "ERROR|WARN.*(config|Unused)" <<<"$log"'
 check "linked into ~/.config" '[ "$(readlink -f ~/.config/alacritty/alacritty.toml)" = "$CFG" ]'
+# A real window must ask the WM for no title bar (_MOTIF_WM_HINTS decorations = 0)
+CFG_UNDER_TEST=${CFG_UNDER_TEST:-$CFG}
+alacritty --config-file "$CFG_UNDER_TEST" --title ns-titlebar-test -e sleep 4 >/dev/null 2>&1 &
+sleep 2
+hints=$(xprop -name ns-titlebar-test _MOTIF_WM_HINTS 2>/dev/null)
+wait
+check "new window has no title bar" '[[ $hints == *"= 0x2, 0x0, 0x0"* ]]'
 exit $fail

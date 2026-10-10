@@ -6,16 +6,16 @@
 
 ## Goal
 
-A fully hand-built terminal look derived from `bg-term.png` (night pool painting: navy water, lilac deck, teal foliage, gold reflections). No starship, no theme plugins — every color comes from one palette. Remove visual chrome (GNOME top panel, window title bar).
+A fully hand-built terminal look derived from `bg-term.png` (night pool painting: navy water, lilac deck, teal foliage, gold reflections). No starship, no theme plugins — every color comes from one palette. Remove the terminal window's title bar.
 
-**Success:** opening a terminal shows the wallpaper through a translucent Alacritty, a two-line Nightswim prompt, a Nightswim tmux bar on top, and fastfetch with custom art — all in the same palette, with no GNOME panel visible until summoned.
+**Success:** opening a terminal shows the wallpaper through a translucent Alacritty, a two-line Nightswim prompt, a Nightswim tmux bar on top, and fastfetch with custom art — all in the same palette, with no terminal title bar.
 
 ## User decisions (from interview)
 
 | Topic | Decision |
 |---|---|
 | Background | Wallpaper + transparent Alacritty (no in-terminal image) |
-| Top bar | GNOME top panel → autohide (Hide Top Bar extension); dock untouched |
+| Top bar | The **terminal's title bar** (Alacritty window decorations) is removed. GNOME top panel and dock untouched. *(Corrected 2026-10-10: Hide Top Bar was installed by mistake and removed.)* |
 | Prompt | Minimal two-line, pure bash, starship removed |
 | tmux | Hand-written pill theme, status on top, replaces catppuccin plugin |
 | Extras | fastfetch, cava, shell tool colors (eza/fzf/bat/delta). **Not** nvim. |
@@ -51,8 +51,7 @@ ANSI 16:
 
 - Copy wallpaper to `nightswim/wallpaper/bg-term.png`.
 - `gsettings set org.gnome.desktop.background picture-uri[-dark] file://…`, `picture-options zoom`.
-- Install **Hide Top Bar** (`hidetopbar@mathieu.bidon.ca`) from extensions.gnome.org for GNOME 46; enable; settings: hide always (not only intellihide), show on mouse at top edge, show in overview.
-- Leave ubuntu-dock and Forge alone.
+- GNOME top panel, ubuntu-dock and Forge are left alone.
 - Captured as `nightswim/desktop.sh` (idempotent) so it can be replayed on a new machine.
 
 ## 3. Alacritty — `alacritty/.config/alacritty/alacritty.toml`
@@ -122,7 +121,6 @@ dotfiles/
 - Every replaced file has a backup in `~/.rice-backup-2026-10-10/`.
 - Starship lines commented, not removed — rollback = uncomment.
 - Prompt functions guard missing deps (`__git_ps1` absent → no git segment; `eza` absent → no alias).
-- Hide Top Bar can be disabled with `gnome-extensions disable hidetopbar@mathieu.bidon.ca`.
 
 ## Verification
 
