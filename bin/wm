@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# workmux wrapper: `wm add …` in a web repo (package.json with a "dev" script)
+# uses the with-dev layout unless -l/--layout or -a/--agent is given.
+set -euo pipefail
+run() { if [ "${WM_DRY_RUN:-}" = 1 ]; then echo "$*"; exit 0; else exec "$@"; fi; }
+if [ "${1:-}" = add ]; then
+  explicit=0
+  for a in "$@"; do case "$a" in -l|--layout|--layout=*|-a|--agent|--agent=*) explicit=1 ;; esac; done
+  root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+  if [ $explicit = 0 ] && [ -f "$root/package.json" ] &&
+     python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("scripts",{}).get("dev") else 1)' "$root/package.json" 2>/dev/null; then
+    shift; run workmux add -l with-dev "$@"
+  fi
+fi
+run workmux "$@"

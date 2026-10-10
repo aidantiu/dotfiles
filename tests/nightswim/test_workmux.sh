@@ -18,4 +18,16 @@ check "valid YAML" 'python3 -I -c "import sys,yaml; yaml.safe_load(open(sys.argv
 check "status_format off (keeps Nightswim pills)" 'grep -q "^status_format: false" "$tmp/c1.yaml"'
 check "with-dev layout defined" 'grep -q "^  with-dev:" "$tmp/c1.yaml"'
 check "live config generated" '[ -f ~/.config/workmux/config.yaml ] && grep -q "^agents:" ~/.config/workmux/config.yaml'
+# wm: prints the workmux command it would run when WM_DRY_RUN=1
+web="$tmp/web"; plain="$tmp/plain"
+for r in "$web" "$plain"; do git init -q "$r"; done
+echo '{"scripts":{"dev":"vite"}}' > "$web/package.json"
+echo '{"scripts":{"build":"tsc"}}' > "$plain/package.json"
+w() { (cd "$1" && WM_DRY_RUN=1 "$DOT/bin/wm" "${@:2}"); }
+check "web repo: add gets -l with-dev" '[ "$(w "$web" add feat -p hi)" = "workmux add -l with-dev feat -p hi" ]'
+check "non-web repo: plain add" '[ "$(w "$plain" add feat)" = "workmux add feat" ]'
+check "explicit layout respected" '[ "$(w "$web" add feat -l solo)" = "workmux add feat -l solo" ]'
+check "explicit agent: no layout (workmux forbids both)" '[ "$(w "$web" add feat -a claude)" = "workmux add feat -a claude" ]'
+check "other subcommands pass through" '[ "$(w "$web" list)" = "workmux list" ]'
+check "wm linked" '[ "$(readlink -f ~/.local/bin/wm)" = "$DOT/bin/wm" ]'
 exit $fail

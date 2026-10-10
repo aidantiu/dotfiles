@@ -49,6 +49,7 @@ link omp/config.yml      "$HOME/.omp/agent/config.yml"
 link bin/nsws            "$HOME/.local/bin/nsws"
 # workmux: generate config from detected agent CLIs
 link bin/wm-agents       "$HOME/.local/bin/wm-agents"
+link bin/wm            "$HOME/.local/bin/wm"
 "$DOT/bin/wm-agents" >/dev/null || true
 # auto-maximize new Alacritty windows (WM ignores startup_mode = "Maximized")
 link nightswim/systemd/nightswim-automax.service "$HOME/.config/systemd/user/nightswim-automax.service"

@@ -29,5 +29,7 @@ check "back to one pane: strip gone" '[ "$($T show -wv -t t pane-border-status 2
 check "catppuccin removed" '! $T show -g 2>/dev/null | grep -q "@catppuccin\|catppuccin-tmux"'
 check "copy uses xclip" '$T list-keys -T copy-mode-vi y | grep -q xclip'
 check "sessionx still bound" '[ "$(g @sessionx-bind)" = o ]'
+check "window pills show workmux status" '[[ $(g window-status-format) == *"@workmux_status"* && $(g window-status-current-format) == *"@workmux_status"* ]]'
+check "prefix+w opens workmux dashboard" '$T list-keys -T prefix w | grep -q "workmux dashboard"'
 $T kill-server 2>/dev/null; rm -f "$err"
 exit $fail
