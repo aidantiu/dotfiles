@@ -23,4 +23,11 @@ if [ "$orig_busy" -gt 0 ]; then
 else
   check "stays on an already-empty starting workspace" '[ "$win" = "$orig" ]'
 fi
+# With the toggle off, a new terminal stays on the current workspace.
+prev=$(~/.local/bin/nsws status); NS_NOTIFY=0 ~/.local/bin/nsws off >/dev/null
+orig=$(xprop -root _NET_CURRENT_DESKTOP | awk '{print $NF}')
+alacritty --title ns-automax-off -e sleep 5 >/dev/null 2>&1 &
+sleep 3; ws=$($Q state ns-automax-off); wait
+NS_NOTIFY=0 ~/.local/bin/nsws "$prev" >/dev/null; $Q activate "$orig"
+check "nsws off: stays on the current workspace" '[[ $ws == *"win=$orig "* ]]'
 exit $fail

@@ -43,6 +43,8 @@ command -v batcat >/dev/null && batcat cache --build >/dev/null
 link fastfetch           "$HOME/.config/fastfetch"
 # cava
 link cava                "$HOME/.config/cava"
+# nsws: toggle "new terminal gets its own workspace"
+link bin/nsws            "$HOME/.local/bin/nsws"
 # auto-maximize new Alacritty windows (WM ignores startup_mode = "Maximized")
 link nightswim/systemd/nightswim-automax.service "$HOME/.config/systemd/user/nightswim-automax.service"
 systemctl --user daemon-reload && systemctl --user enable --now nightswim-automax >/dev/null 2>&1 || true

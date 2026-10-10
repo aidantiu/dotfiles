@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# nsws — should new Alacritty windows open on their own workspace?
+#   nsws on | off | toggle | status      (Super+Shift+N runs `nsws toggle`)
+# Read by nightswim/automax.py each time a window opens; no restart needed.
+F="${XDG_CONFIG_HOME:-$HOME/.config}/nightswim/new-workspace"
+status() { [ "$(cat "$F" 2>/dev/null)" = off ] && echo off || echo on; }
+set_to() {
+  mkdir -p "$(dirname "$F")" && echo "$1" > "$F"
+  [ "${NS_NOTIFY:-1}" = 1 ] && command -v notify-send >/dev/null &&
+    notify-send -a Nightswim -t 2000 "New terminal → $([ "$1" = on ] && echo 'its own workspace' || echo 'current workspace')"
+  echo "$1"
+}
+case "${1:-status}" in
+  on|off) set_to "$1" ;;
+  toggle) [ "$(status)" = on ] && set_to off || set_to on ;;
+  status) status ;;
+  *) echo "usage: nsws on|off|toggle|status" >&2; exit 2 ;;
+esac
