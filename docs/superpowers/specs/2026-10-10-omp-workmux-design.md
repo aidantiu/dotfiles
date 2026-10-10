@@ -34,7 +34,7 @@ A lightweight agent workflow built from **oh-my-pi (`omp`)** and **workmux** (gi
 
 - **Restricted set** = union of:
   - `restrict` patterns (default `*fable*`, `*gpt-6-astra*`);
-  - **auto big-leagues**: per provider, model(s) with the highest listed input price in `ctx.models.list()`; providers without prices fall back to name patterns (`*opus*`, `*fable*`, `*-astra*`, `*ultra*`, `*-max*`);
+  - **auto big-leagues**: per provider, model(s) with the highest listed input price among models not already name-restricted (e.g. Opus once Fable is restricted; GPT-6 once Astra is), when ≥2 distinct prices remain; providers without prices fall back to name patterns (`*opus*`, `*fable*`, `*-astra*`, `*ultra*`, `*-max*`);
   - minus `allow` patterns (user overrides).
 - **Session approvals**: in-memory `Set<modelId>`, reset when the OMP process/session ends.
 - **`input` hook**: if `ctx.models.current()` is restricted and not approved → `ctx.ui.confirm("Use <model> (premium)?")`. Yes → approve, let the message through. No → return `handled: true` (message not sent), `pi.setModel(<default role model>)`, notify.
