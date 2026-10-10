@@ -36,5 +36,6 @@ check "copy uses xclip" '$T list-keys -T copy-mode-vi y | grep -q xclip'
 check "sessionx still bound" '[ "$(g @sessionx-bind)" = o ]'
 check "window pills show workmux status" '[[ $(g window-status-format) == *"@workmux_status"* && $(g window-status-current-format) == *"@workmux_status"* ]]'
 check "prefix+w opens workmux dashboard" '$T list-keys -T prefix w | grep -q "workmux dashboard"'
+check "prefix+W opens/switches to a wm dashboard window" '$T list-keys -T prefix W | grep -q "=wm" && $T list-keys -T prefix W | grep -q "workmux dashboard"'
 $T kill-server 2>/dev/null; rm -f "$err"
 exit $fail
