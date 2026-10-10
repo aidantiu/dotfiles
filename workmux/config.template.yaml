@@ -2,6 +2,12 @@
 # Edit the template, then run `wm-agents`.
 nerdfont: true
 status_format: false   # Nightswim tmux pills render #{@workmux_status} themselves
+# Single-width Nerd Font glyphs: the default emoji icons have no glyph in the
+# terminal font and render as a blank double-width gap inside the window pills.
+status_icons:
+  working: "󰔟"   # nf-md-timer_sand
+  waiting: "󰍡"   # nf-md-message
+  done: "󰄬"      # nf-md-check
 agent: @@AGENT@@
 agents:
 @@AGENTS@@

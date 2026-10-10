@@ -16,6 +16,7 @@ check "only installed agents" '! grep -qE "^  (omp|cursor):" "$tmp/c2.yaml" && g
 check "claude default when no omp" 'grep -q "^agent: claude$" "$tmp/c2.yaml"'
 check "valid YAML" 'python3 -I -c "import sys,yaml; yaml.safe_load(open(sys.argv[1]))" "$tmp/c1.yaml"'
 check "status_format off (keeps Nightswim pills)" 'grep -q "^status_format: false" "$tmp/c1.yaml"'
+check "status icons are nerd glyphs, not emoji" 'grep -q "^status_icons:" "$tmp/c1.yaml" && ! grep -qP "[\x{1F300}-\x{1FAFF}\x{2705}]" "$tmp/c1.yaml"'
 check "with-dev layout defined" 'grep -q "^  with-dev:" "$tmp/c1.yaml"'
 check "live config generated" '[ -f ~/.config/workmux/config.yaml ] && grep -q "^agents:" ~/.config/workmux/config.yaml'
 # wm: prints the workmux command it would run when WM_DRY_RUN=1
