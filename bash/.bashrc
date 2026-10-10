@@ -122,6 +122,7 @@ fi
 # Prompt: Nightswim (starship disabled — uncomment to roll back)
 # eval "$(starship init bash)"
 [ -f ~/dotfiles/bash/prompt.sh ] && . ~/dotfiles/bash/prompt.sh
+[ -f ~/dotfiles/bash/nightswim-env.sh ] && . ~/dotfiles/bash/nightswim-env.sh
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm

@@ -16,3 +16,24 @@
 	helper = store
 [http]
 	sslVerify = true
+
+# Nightswim: delta pager (falls back to less/cat when delta isn't installed)
+[core]
+	pager = command -v delta >/dev/null 2>&1 && exec delta || exec less -FRX
+[interactive]
+	diffFilter = command -v delta >/dev/null 2>&1 && exec delta --color-only || exec cat
+[delta]
+	navigate = true
+	line-numbers = true
+	syntax-theme = Nightswim
+	minus-style = syntax "#3a1f33"
+	plus-style = syntax "#1d3330"
+	line-numbers-minus-style = "#c9566b"
+	line-numbers-plus-style = "#86b3a0"
+	line-numbers-zero-style = "#3b4170"
+	hunk-header-style = file line-number syntax
+	hunk-header-decoration-style = "#9a8cc8" box
+	file-style = "#e8a95b" bold
+	file-decoration-style = "#e8a95b" ul
+[merge]
+	conflictstyle = zdiff3
