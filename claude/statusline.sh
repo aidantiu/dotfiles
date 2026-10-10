@@ -4,7 +4,7 @@
 # Wired up in ~/.claude/settings.json: statusLine.command = bash ~/dotfiles/claude/statusline.sh
 #
 #   model  lilac | dir  blue | git  green (gold + * when dirty)
-#   context  cyan → gold ≥60% → red ≥80% | cost  lavender (₱, USD until a rate is cached)
+#   context  cyan → gold ≥60% → red ≥80% | cost  lavender (USD)
 #
 # Also forwards the payload to Orca's statusline hook (rate-limit tracking) in
 # the background, since this replaces the statusLine Orca installed.
@@ -15,7 +15,7 @@ COST_BG=bdb3d6;  WARN_BG=e8a95b; ERR_BG=c9566b
 
 # Nerd Font glyphs as escapes (literal private-use chars get mangled by editors)
 CAP_L=$'' CAP_R=$'' SEP=$''
-I_MODEL=$'' I_DIR=$'' I_GIT=$'' I_CTX=$'' I_PHP=$'' I_USD=$''
+I_MODEL=$'' I_DIR=$'' I_GIT=$'' I_CTX=$'' I_USD=$''
 
 input=$(cat)
 
@@ -58,38 +58,8 @@ if [ -n "$win" ] && [ -n "$pct" ] && [ "$used" != 0 ]; then
     ctx="$(fmt_tok "$used")/$(fmt_tok "$win") (${pct_r}%)"
 fi
 
-# ---- USD -> PHP (12h cache, refreshed in a detached job; never in the render path)
-RATE_API=${NS_RATE_API:-https://open.er-api.com/v6/latest/USD}
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/claude-statusline"
-RATE_FILE="$CACHE_DIR/usd-php"; LOCK="$CACHE_DIR/.rate-lock"; RATE_TTL=43200
-rate=""; rate_at=0
-[ -r "$RATE_FILE" ] && read -r rate rate_at < "$RATE_FILE" 2>/dev/null
-printf -v now '%(%s)T' -1
-if [ -z "$rate" ] || [ $(( now - ${rate_at:-0} )) -ge "$RATE_TTL" ]; then
-    mkdir -p "$CACHE_DIR" 2>/dev/null
-    [ -d "$LOCK" ] && [ -z "$(find "$LOCK" -maxdepth 0 -mmin -5 2>/dev/null)" ] && rmdir "$LOCK" 2>/dev/null
-    if mkdir "$LOCK" 2>/dev/null; then
-        (
-            r=$(curl -fsS --max-time 10 "$RATE_API" 2>/dev/null | jq -r '.rates.PHP // empty' 2>/dev/null)
-            case "$r" in
-                ''|*[!0-9.]*) ;;
-                *) printf '%s %s\n' "$r" "$now" > "$RATE_FILE.tmp" && mv -f "$RATE_FILE.tmp" "$RATE_FILE" ;;
-            esac
-            rmdir "$LOCK" 2>/dev/null
-        ) >/dev/null 2>&1 &
-        disown 2>/dev/null
-    fi
-fi
-if [ -n "$rate" ]; then
-    cost_txt="₱$(awk -v c="$cost" -v r="$rate" 'BEGIN {
-        s = sprintf("%.2f", c * r); split(s, p, ".")
-        n = p[1]; g = ""
-        while (length(n) > 3) { g = "," substr(n, length(n) - 2) g; n = substr(n, 1, length(n) - 3) }
-        printf "%s%s.%s", n, g, p[2] }')"
-    cost_icon=$I_PHP
-else
-    cost_txt=$(printf '$%.2f' "$cost"); cost_icon=$I_USD
-fi
+# ---- cost (USD, as Claude reports it) --------------------------------------
+cost_txt=$(printf '$%.2f' "$cost")
 
 # ---- segments --------------------------------------------------------------
 icons=(); bases=(); txts=()
@@ -105,7 +75,7 @@ if [ -n "$ctx" ]; then
     elif [ "$pct_r" -ge 60 ]; then seg "$I_CTX" "$WARN_BG" "$ctx"
     else                           seg "$I_CTX" "$CTX_BG"  "$ctx"; fi
 fi
-seg "$cost_icon" "$COST_BG" "$cost_txt"
+seg "$I_USD" "$COST_BG" "$cost_txt"
 
 # ---- render: rounded caps on the default bg (keeps window transparency) -----
 E=$'\e'

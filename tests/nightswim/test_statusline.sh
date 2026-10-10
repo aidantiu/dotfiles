@@ -25,13 +25,15 @@ check "dir pill (blue)" '[[ $out == *"$(bg 8497d6)"*"repo"* ]]'
 check "clean branch (green)" '[[ $out == *"$(bg 86b3a0)"*"main "* && $out != *"main*"* ]]'
 check "context 30% (cyan)" '[[ $out == *"$(bg 8cc4d4)"*"60k/200k (30%)"* ]]'
 check "rounded caps are real glyphs" '[[ $out == *$'"'"''"'"'* && $out == *$'"'"''"'"'* ]]'
-check "no rate cached: USD with an icon" '[[ $out == *"$(bg bdb3d6)"*" \$1.23"* && $out != *"  \$1.23"* ]]'
+check "cost in USD with an icon" '[[ $out == *"$(bg bdb3d6)"*" \$1.23"* && $out != *"  \$1.23"* ]]'
 check "no error text" '[[ $out != *"command not found"* && $out != *"syntax error"* ]]'
 
 mkdir -p "$XDG_CACHE_HOME/claude-statusline"
 printf '56 %s\n' "$(date +%s)" > "$XDG_CACHE_HOME/claude-statusline/usd-php"
 out=$(run 30)
-check "cached rate: pesos" '[[ $out == *"₱69.10"* ]]'
+check "always dollars, never pesos" '[[ $out == *" \$1.23"* && $out != *"₱"* ]]'
+rm -rf "$XDG_CACHE_HOME"; run 30 >/dev/null; sleep 0.3
+check "no exchange-rate fetching" '[ ! -e "$XDG_CACHE_HOME/claude-statusline" ]'
 
 check "context 65% (gold)" '[[ $(run 65) == *"$(bg e8a95b)"*"(65%)"* ]]'
 check "context 85% (red)" '[[ $(run 85) == *"$(bg c9566b)"*"(85%)"* ]]'
