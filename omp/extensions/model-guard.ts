@@ -79,4 +79,10 @@ export default function (pi: any) {
       if (!ok) return { block: true, reason: `${m ? label(m) : p} is a premium model and was not approved` };
     }
   });
+
+  // Observable proof the extension loaded (shows in the command list); also reports the active policy file.
+  pi.registerCommand?.("model-guard", {
+    description: "Show the model-guard config in use",
+    handler: async (_args: string, ctx: any) => { ctx.ui?.notify?.(`model-guard active, config: ${CONFIG}`, "info"); },
+  });
 }

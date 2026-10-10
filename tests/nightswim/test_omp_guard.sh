@@ -57,4 +57,13 @@ check "switch to fable mid-session: asks before use" '[[ $o == *"\"confirms\":1"
 
 : > "$tmp/req.log"; o=$($E $F yes,yes "one" "/new" "two")
 check "new session: asks again after approval" '[[ $o == *"\"confirms\":2"* ]]'
+
+check "global config links to dotfiles" '[ "$(readlink -f ~/.omp/agent/config.yml)" = "$DOT/omp/config.yml" ]'
+check "global config loads model-guard" 'grep -Eq "(~|$DOT)/(dotfiles/)?omp/extensions/model-guard.ts" "$DOT/omp/config.yml"'
+check "orca extensions untouched" 'ls ~/.omp/agent/extensions/orca-agent-status.ts >/dev/null'
+
+# Real config really loads the guard (omp only warns on a bad extension path). RPC, no prompt sent.
+real_load() { (env -u PI_CODING_AGENT_DIR -u MODEL_GUARD_CONFIG "$@" timeout 60 node "$DOT/tests/omp/rpc_load.mjs" 2>&1); }
+o=$(real_load); check "real omp: ready, no load warning/error on stderr or notify frames" '[[ $o == *"\"ready\":true"* ]] && ! grep -v "^{\"type\":\"available_commands_update\"" <<<"$o" | grep -Ei "model-guard|failed to load|extension.*(error|fail)" | grep -qv "^{\"ready\""'
+check "real omp: model-guard extension loaded (its /model-guard command is registered)" '[[ $o == *"\"name\":\"model-guard\""* ]]'
 exit $fail

@@ -1,0 +1,3 @@
+# oh-my-pi settings (linked to ~/.omp/agent/config.yml). `omp config set` edits this file.
+extensions:
+  - ~/dotfiles/omp/extensions/model-guard.ts

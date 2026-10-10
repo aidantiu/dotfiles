@@ -43,6 +43,8 @@ command -v batcat >/dev/null && batcat cache --build >/dev/null
 link fastfetch           "$HOME/.config/fastfetch"
 # cava
 link cava                "$HOME/.config/cava"
+# omp (oh-my-pi): config loads the model-guard extension
+link omp/config.yml      "$HOME/.omp/agent/config.yml"
 # nsws: toggle "new terminal gets its own workspace"
 link bin/nsws            "$HOME/.local/bin/nsws"
 # auto-maximize new Alacritty windows (WM ignores startup_mode = "Maximized")
