@@ -82,11 +82,11 @@ limit_bg() { # % → cyan / gold ≥60 / red ≥80
 h5_txt=""; wk_txt=""
 if [ -n "$h5" ]; then
     h5=$(awk -v p="$h5" 'BEGIN{printf "%d", p+0.5}')
-    h5_txt="5h ${h5}%"; [ -n "$h5_at" ] && r=$(until_txt "$h5_at") && [ -n "$r" ] && h5_txt+=" ↻$r"
+    h5_txt="5h ${h5}%"; [ -n "$h5_at" ] && r=$(until_txt "$h5_at") && [ -n "$r" ] && h5_txt+=" ↻ $r"
 fi
 if [ -n "$wk" ]; then
     wk=$(awk -v p="$wk" 'BEGIN{printf "%d", p+0.5}')
-    wk_txt="wk ${wk}%"; [ -n "$wk_at" ] && r=$(until_txt "$wk_at") && [ -n "$r" ] && wk_txt+=" ↻$r"
+    wk_txt="wk ${wk}%"; [ -n "$wk_at" ] && r=$(until_txt "$wk_at") && [ -n "$r" ] && wk_txt+=" ↻ $r"
 fi
 
 # ---- cost (USD, as Claude reports it) --------------------------------------

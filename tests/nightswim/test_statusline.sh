@@ -45,7 +45,7 @@ check "no exchange-rate fetching" '[ ! -e "$XDG_CACHE_HOME/claude-statusline" ]'
 wk=$(( $(date +%s) + 3*86400 + 3600 + 30 ))
 out=$(limits 5 7830 21 "$wk")
 check "session limit pill: % and time to reset" '[[ $out == *"$(bg 8cc4d4)"*"5h 5% "*"2h10m"* ]]'
-check "weekly limit pill: % and days to reset" '[[ $out == *"wk 21% ↻3d1h"* ]]'
+check "weekly limit pill: % and days to reset" '[[ $out == *"wk 21% ↻ 3d1h"* ]]'
 check "limit pills sit before cost" '[[ $out == *"5h 5%"*"wk 21%"*"\$1.23"* ]]'
 check "session limit 65% (gold)" '[[ $(limits 65 600 10 "$wk") == *"$(bg e8a95b)"*"5h 65%"* ]]'
 check "weekly limit 90% (red)" '[[ $(limits 5 600 90 "$wk") == *"$(bg c9566b)"*"wk 90%"* ]]'
