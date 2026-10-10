@@ -28,6 +28,14 @@ check "clean repo: no dirty dot" '[[ $OUT != *"●"* ]]'
 echo a > f && git add f
 _ns_prompt; render
 check "dirty dot shown" '[[ $OUT == *"●"* ]]'
+git -c user.name=t -c user.email=t@t commit -q -m f
+before=$(stat -c %Y.%y .git/index); sleep 1.1; touch f   # stat-dirty, content-clean
+_ns_prompt; render
+check "prompt never rewrites .git/index (no lock clash with other panes)" '[ "$(stat -c %Y.%y .git/index)" = "$before" ]'
+check "touched-but-unchanged file is clean" '[[ $OUT != *"●"* ]]'
+echo b >> f; _ns_prompt; render
+check "unstaged change is dirty" '[[ $OUT == *"●"* ]]'
+git checkout -q f
 git checkout -q -b '$(id>pwned)'   # git forbids spaces in ref names
 _ns_prompt; render
 check "malicious branch shown, not executed" '[ ! -e pwned ] && [[ $OUT == *"\$(id>pwned)"* ]]'
@@ -37,6 +45,8 @@ check "venv shown" '[[ $OUT == *"(.venv)"* ]]'
 _ns_prompt; render
 check "venv gone when unset" '[[ $OUT != *"(.venv)"* ]]'
 
+unset _ns_t0; : "${PS0@P}"
+check "PS0 hook actually sets start time" '[ -n "${_ns_t0:-}" ]'
 _ns_t0=$((SECONDS-5)); _ns_prompt; render
 check "duration shown for 5s command" '[[ $OUT == *"$G_CLOCK 5s"* ]]'
 : "${PS0@P}"; _ns_prompt; render
@@ -44,7 +54,7 @@ check "PS0 hook records start; short command hides duration" '[[ $OUT != *"$G_CL
 
 . "$DOT/bash/prompt.sh"
 check "re-sourcing does not duplicate PROMPT_COMMAND" '[ "$(grep -o _ns_prompt <<<"$PROMPT_COMMAND" | wc -l)" = 1 ]'
-check "_ns_prompt runs first (sees real exit status)" '[[ $PROMPT_COMMAND == _ns_prompt* ]]'
+check "_ns_prompt registered before other hooks" '[[ $PROMPT_COMMAND == _ns_prompt* ]]'
 PROMPT_COMMAND=$'__bp_precmd_invoke_cmd\n_ns_prompt;__fig_post_prompt\n__bp_interactive_mode'   # bash-preexec (Kiro) layout
 . "$DOT/bash/prompt.sh"
 check "re-sourcing under bash-preexec does not duplicate" '[ "$(grep -o _ns_prompt <<<"$PROMPT_COMMAND" | wc -l)" = 1 ]'

@@ -7,9 +7,13 @@ stow .
 
 ## Linux (Ubuntu) — Nightswim
 
-    git clone git@github.com:aidantiu/dotfiles.git ~/dotfiles
+    git clone https://github.com/aidantiu/dotfiles.git ~/dotfiles
     sudo add-apt-repository -y ppa:zhangsongcui3371/fastfetch
     sudo apt install -y fastfetch eza git-delta cava fzf bat xclip
+    # Nerd Font used by Alacritty (icons in prompt, tmux, fastfetch)
+    mkdir -p ~/.local/share/fonts && cd /tmp && \
+      curl -fLO https://github.com/ryanoasis/nerd-fonts/releases/latest/download/0xProto.zip && \
+      unzip -o 0xProto.zip -d ~/.local/share/fonts '*.ttf' && fc-cache -f && cd -
     ~/dotfiles/install-linux.sh      # symlink configs (backs up existing files)
     ~/dotfiles/nightswim/desktop.sh  # wallpaper
     # put API keys in ~/.secrets.sh (never committed)

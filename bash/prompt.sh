@@ -19,7 +19,8 @@ PROMPT_DIRTRIM=4
 _ns_first=${_ns_first-1}
 
 # Record command start time; arithmetic in PS0 runs in the current shell.
-PS0='${_ns_noop:0:$((_ns_t0=SECONDS,0))}'
+# (Array-subscript form: bash 5.2 skips the arithmetic in ${x:0:$((...))} when x is unset.)
+PS0='${_ns_noop[_ns_t0=SECONDS,0]}'
 
 _ns_prompt() {
   local status=$? nl='' arrow
@@ -27,7 +28,10 @@ _ns_prompt() {
 
   if declare -F __git_ps1 >/dev/null; then
     _ns_git=$(__git_ps1 '%s')
-    if [ -n "$_ns_git" ] && [ -n "$(git status --porcelain --untracked-files=no 2>/dev/null | head -n1)" ]; then
+    # Tracked changes (staged or not), untracked files ignored for speed.
+    # --no-optional-locks: never rewrite .git/index, so a commit/rebase in
+    # another pane can't hit index.lock. (git 2.43 `diff` rewrites it anyway.)
+    if [ -n "$_ns_git" ] && [ -n "$(git --no-optional-locks status --porcelain --untracked-files=no 2>/dev/null | head -n1)" ]; then
       _ns_dirty=1
     fi
   fi
