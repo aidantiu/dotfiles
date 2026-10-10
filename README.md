@@ -23,3 +23,14 @@ Super+, minimize (`gsettings set org.gnome.desktop.wm.keybindings minimize "['<S
 New Alacritty windows are maximized by the `nightswim-automax` user service.
 
 Tests: `bash tests/nightswim/run_all.sh`
+
+## Agents — oh-my-pi + workmux
+
+    wm add <branch> -p "task"     # worktree + tmux window running the default agent (omp)
+    wm add <branch> -a claude     # pick another detected agent (claude, codex, cursor)
+    prefix + w                    # workmux dashboard
+    wm-agents                     # re-detect agents after installing/removing one
+
+Premium models (Fable, GPT-6 Astra, each provider's top tier) ask once per session in omp.
+Edit `omp/model-guard.yml` to change what's restricted.
+Tests: `node --test tests/omp/policy.test.ts` and `bash tests/nightswim/run_all.sh`.

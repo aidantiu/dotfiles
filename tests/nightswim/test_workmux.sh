@@ -30,4 +30,5 @@ check "explicit layout respected" '[ "$(w "$web" add feat -l solo)" = "workmux a
 check "explicit agent: no layout (workmux forbids both)" '[ "$(w "$web" add feat -a claude)" = "workmux add feat -a claude" ]'
 check "other subcommands pass through" '[ "$(w "$web" list)" = "workmux list" ]'
 check "wm linked" '[ "$(readlink -f ~/.local/bin/wm)" = "$DOT/bin/wm" ]'
+check "omp status hook installed" '[ -f ~/.omp/agent/extensions/workmux-status.ts ]'
 exit $fail
