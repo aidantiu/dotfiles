@@ -15,7 +15,8 @@ const next = () => {
     const id = `p${n}`, text = prompts[n++]; pending = id;
     const m = /^\/model\s+([^/\s]+)\/(\S+)$/.exec(text);
     // "/model x/y" opens a TUI picker, so over RPC it is sent as a set_model command.
-    if (m) send({ id, type: "set_model", provider: m[1], modelId: m[2] });
+    if (text === "/new") send({ id, type: "new_session" });
+    else if (m) send({ id, type: "set_model", provider: m[1], modelId: m[2] });
     else send({ id, type: "prompt", message: text });
   } else send({ id: "state", type: "get_state" });
 };
@@ -29,8 +30,8 @@ readline.createInterface({ input: child.stdout }).on("line", (line) => {
     out.results.push(msg.status ?? "local"); pending = null; next();
   } else if (msg.type === "response" && msg.id === pending && msg.command === "prompt" && msg.success && msg.data?.agentInvoked === false) {
     out.results.push("local"); pending = null; next();
-  } else if (msg.type === "response" && msg.id === pending && msg.command === "set_model") {
-    out.results.push(msg.success ? "model_set" : `error:${msg.error}`); pending = null; next();
+  } else if (msg.type === "response" && msg.id === pending && (msg.command === "set_model" || msg.command === "new_session")) {
+    out.results.push(msg.success ? "ok" : `error:${msg.error}`); pending = null; next();
   } else if (msg.type === "response" && msg.id === pending && msg.success === false) {
     out.results.push(`error:${msg.error}`); pending = null; next();
   } else if (msg.type === "response" && msg.id === "state") {

@@ -19,6 +19,12 @@ providers:
       - { id: fake-fable-5, name: Fake Fable, cost: { input: 30, output: 150, cacheRead: 0, cacheWrite: 0 }, contextWindow: 128000, maxTokens: 1024 }
       - { id: fake-sonnet, name: Fake Sonnet, cost: { input: 3, output: 15, cacheRead: 0, cacheWrite: 0 }, contextWindow: 128000, maxTokens: 1024 }
       - { id: fake-mini, name: Fake Mini, cost: { input: 0.3, output: 1.5, cacheRead: 0, cacheWrite: 0 }, contextWindow: 128000, maxTokens: 1024 }
+  lonelyco:
+    baseUrl: http://127.0.0.1:$(cat "$tmp/port")/v1
+    api: openai-completions
+    apiKey: fake
+    models:
+      - { id: lonely-fable, name: Lonely Fable, cost: { input: 30, output: 150, cacheRead: 0, cacheWrite: 0 }, contextWindow: 128000, maxTokens: 1024 }
 EOM
 # MODEL_GUARD_EXT lets the harness itself be proven with a stand-in extension.
 printf 'extensions:\n  - %s\n' "${MODEL_GUARD_EXT:-$DOT/omp/extensions/model-guard.ts}" > "$PI_CODING_AGENT_DIR/config.yml"
@@ -40,9 +46,15 @@ check "unrestricted model: no question" '[[ $o == *"\"confirms\":0"* ]] && [ "$(
 : > "$tmp/req.log"; o=$($E $F "" "hi" --no-ui)
 check "no UI: restricted model never called" '[ "$(reqs fake-fable-5)" = 0 ]'
 
-: > "$tmp/req.log"; timeout 60 omp -p --no-session --model $F "hi" >/dev/null 2>&1
-check "print mode (-p): restricted model never called" '[ "$(reqs fake-fable-5)" = 0 ]'
+: > "$tmp/req.log"; timeout 60 omp -p --no-session --model $F "hi" >/dev/null 2>&1 </dev/null; rc=$?
+check "print mode (-p): restricted model never called, fallback used" '[ "$(reqs fake-fable-5)" = 0 ] && [ "$(reqs fake-mini)" -ge 1 ] && [ $rc -ne 124 ]'
+
+: > "$tmp/req.log"; timeout 60 omp -p --no-session --model lonelyco/lonely-fable "hi" >/dev/null 2>"$tmp/err" </dev/null; rc=$?
+check "print mode, no fallback: lonely-fable never called, no hang" '[ "$(reqs lonely-fable)" = 0 ] && [ $rc -ne 124 ]'
 
 : > "$tmp/req.log"; o=$($E fakeco/fake-mini yes "hi" "/model fakeco/fake-fable-5" "again")
 check "switch to fable mid-session: asks before use" '[[ $o == *"\"confirms\":1"* ]]'
+
+: > "$tmp/req.log"; o=$($E $F yes,yes "one" "/new" "two")
+check "new session: asks again after approval" '[[ $o == *"\"confirms\":2"* ]]'
 exit $fail
