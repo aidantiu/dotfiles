@@ -1,0 +1,26 @@
+; Nightswim cava — palette in ~/dotfiles/nightswim/palette.sh
+[general]
+framerate = 60
+bars = 0
+bar_width = 2
+bar_spacing = 1
+
+[input]
+method = pulse
+source = auto
+
+[output]
+; noncurses: ncurses mode needs can_change_color, which tmux-256color lacks
+method = noncurses
+
+[color]
+background = default
+gradient = 1
+gradient_count = 4
+gradient_color_1 = '#3b4170'
+gradient_color_2 = '#9a8cc8'
+gradient_color_3 = '#d79bc9'
+gradient_color_4 = '#e8a95b'
+
+[smoothing]
+noise_reduction = 77

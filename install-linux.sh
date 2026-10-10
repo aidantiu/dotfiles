@@ -41,5 +41,7 @@ link bat                 "$HOME/.config/bat"
 command -v batcat >/dev/null && batcat cache --build >/dev/null
 # fastfetch
 link fastfetch           "$HOME/.config/fastfetch"
+# cava
+link cava                "$HOME/.config/cava"
 
 [ -f "$HOME/.secrets.sh" ] || echo "note: create ~/.secrets.sh for API keys (sourced by .bashrc, never committed)"

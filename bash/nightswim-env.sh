@@ -20,6 +20,10 @@ fi
 export BAT_THEME=Nightswim
 command -v bat >/dev/null || { command -v batcat >/dev/null && alias bat=batcat; }
 
+# cava 0.7 refuses hex colors when TERM lacks can_change_color (tmux-256color does);
+# its noncurses output just needs true color, which tmux passes through.
+command -v cava >/dev/null && alias cava='TERM=xterm-256color cava'
+
 # fastfetch: only in a fresh Alacritty shell, not in tmux panes or other terminals
 if [ -z "${_ns_fetched:-}" ] && [ -z "${TMUX:-}" ] && [ -n "${ALACRITTY_WINDOW_ID:-}" ] && command -v fastfetch >/dev/null; then
   _ns_fetched=1
