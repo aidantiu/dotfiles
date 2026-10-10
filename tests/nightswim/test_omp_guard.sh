@@ -23,7 +23,7 @@ EOM
 # MODEL_GUARD_EXT lets the harness itself be proven with a stand-in extension.
 printf 'extensions:\n  - %s\n' "${MODEL_GUARD_EXT:-$DOT/omp/extensions/model-guard.ts}" > "$PI_CODING_AGENT_DIR/config.yml"
 E="node $DOT/tests/omp/rpc_e2e.mjs"; F=fakeco/fake-fable-5
-reqs() { grep -c "$1" "$tmp/req.log" 2>/dev/null || echo 0; }
+reqs() { local c; c=$(grep -c "$1" "$tmp/req.log" 2>/dev/null); echo "${c:-0}"; }
 
 : > "$tmp/req.log"; o=$($E $F no "hello")
 check "decline: asked once" '[[ $o == *"\"confirms\":1"* ]]'
