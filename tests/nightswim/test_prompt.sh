@@ -48,7 +48,7 @@ check "venv gone when unset" '[[ $OUT != *"(.venv)"* ]]'
 unset _ns_t0; : "${PS0@P}"
 check "PS0 hook actually sets start time" '[ -n "${_ns_t0:-}" ]'
 _ns_t0=$((SECONDS-5)); _ns_prompt; render
-check "duration shown for 5s command" '[[ $OUT == *"$G_CLOCK 5s"* ]]'
+check "duration shown for 5s command" '[[ $OUT == *"$G_CLOCK "[56]"s"* ]]'  # 6 if a second ticks over
 : "${PS0@P}"; _ns_prompt; render
 check "PS0 hook records start; short command hides duration" '[[ $OUT != *"$G_CLOCK"* ]]'
 
