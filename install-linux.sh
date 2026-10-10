@@ -49,4 +49,7 @@ link bin/nsws            "$HOME/.local/bin/nsws"
 link nightswim/systemd/nightswim-automax.service "$HOME/.config/systemd/user/nightswim-automax.service"
 systemctl --user daemon-reload && systemctl --user enable --now nightswim-automax >/dev/null 2>&1 || true
 
+# git hooks for this repo (strip AI co-author trailers)
+git -C "$DOT" config core.hooksPath .githooks
+
 [ -f "$HOME/.secrets.sh" ] || echo "note: create ~/.secrets.sh for API keys (sourced by .bashrc, never committed)"

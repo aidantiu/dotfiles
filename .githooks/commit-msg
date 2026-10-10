@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Strip AI-agent attribution from commit messages so commits credit only the author.
+# Removes Co-authored-by trailers for AI tools and "Generated with …" footers;
+# human co-authors are kept. Enabled with: git config core.hooksPath .githooks
+f="$1"
+agents='claude|anthropic|copilot|codex|openai|chatgpt|cursor|gemini|aider|devin|kiro|windsurf|codeium|amp|opencode'
+grep -viE "^co-authored-by:.*\b($agents)\b|generated (with|by) .*\b($agents)\b" "$f" > "$f.tmp"
+# drop trailing blank lines left behind
+sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$f.tmp" > "$f"
+rm -f "$f.tmp"
