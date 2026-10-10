@@ -13,7 +13,12 @@ check "prefix unchanged (C-s)" '[ "$(g prefix)" = C-s ]'
 check "status on top" '[ "$(g status-position)" = top ]'
 check "window list centered" '[ "$(g status-justify)" = centre ]'
 check "transparent bar" '[[ $(g status-style) == *"bg=default"* ]]'
-check "session pill lilac" '[[ $(g status-left) == *"#9a8cc8"*"#S"* ]]'
+sl() { $T display -p -t t '#{E:status-left}'; }
+check "session pill lilac" '[[ $(sl) == *"#9a8cc8"* && $(g status-left) == *"#S"* ]]'
+check "pill turns pink on prefix" '[[ $(g @ns_pill) == *"client_prefix,#d79bc9"* ]]'
+$T copy-mode -t t; sleep 0.2
+check "pill turns cyan in copy mode" '[[ $(sl) == *"#8cc4d4"* && $(sl) != *"#9a8cc8"* ]]'
+$T send-keys -t t -X cancel; sleep 0.2
 check "pill caps are real glyphs" '[[ $(g status-left) == *$'"'"''"'"'* ]]'
 check "current window gold" '[[ $(g window-status-current-format) == *"#e8a95b"* ]]'
 check "active border gold" '[[ $(g pane-active-border-style) == *"#e8a95b"* ]]'
