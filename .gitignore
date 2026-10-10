@@ -8,3 +8,6 @@ history.txt
 .secrets.sh
 *.secrets.sh
 .superpowers/
+
+# python caches from tests
+__pycache__/
