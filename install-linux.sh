@@ -43,5 +43,8 @@ command -v batcat >/dev/null && batcat cache --build >/dev/null
 link fastfetch           "$HOME/.config/fastfetch"
 # cava
 link cava                "$HOME/.config/cava"
+# auto-maximize new Alacritty windows (WM ignores startup_mode = "Maximized")
+link nightswim/systemd/nightswim-automax.service "$HOME/.config/systemd/user/nightswim-automax.service"
+systemctl --user daemon-reload && systemctl --user enable --now nightswim-automax >/dev/null 2>&1 || true
 
 [ -f "$HOME/.secrets.sh" ] || echo "note: create ~/.secrets.sh for API keys (sourced by .bashrc, never committed)"

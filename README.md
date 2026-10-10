@@ -18,4 +18,8 @@ stow .
     ~/dotfiles/nightswim/desktop.sh  # wallpaper
     # put API keys in ~/.secrets.sh (never committed)
 
+Window keys (the terminal has no title bar): Super+↑ maximize, Super+↓ restore,
+Super+, minimize (`gsettings set org.gnome.desktop.wm.keybindings minimize "['<Super>comma']"`).
+New Alacritty windows are maximized by the `nightswim-automax` user service.
+
 Tests: `bash tests/nightswim/run_all.sh`

@@ -6,12 +6,12 @@ check() { if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
 ENV="$DOT/bash/nightswim-env.sh"
 
 check "env file exists" '[ -f "$ENV" ]'
-o=$(bash -ic ". '$ENV'; echo \"\$FZF_DEFAULT_OPTS|\$BAT_THEME|\$LS_COLORS\"; alias lt lx" 2>/dev/null </dev/null)
+o=$(env -u ALACRITTY_WINDOW_ID bash -ic ". '$ENV'; echo \"\$FZF_DEFAULT_OPTS|\$BAT_THEME|\$LS_COLORS\"; alias lt lx" 2>/dev/null </dev/null)
 check "fzf colors" '[[ $o == *"pointer:#e8a95b"* ]]'
 check "bat theme" '[[ $o == *"|Nightswim|"* ]]'
 check "ls dirs lilac" '[[ $o == *"di=1;38;2;154;140;200"* ]]'
 check "eza aliases" '[[ $o == *"alias lt="* && $o == *"alias lx="* ]]'
-check "ls untouched" '[ "$(bash -ic ". '"'$ENV'"'; alias ls" 2>/dev/null </dev/null)" = "alias ls='"'ls --color=auto'"'" ]'
+check "ls untouched" '[ "$(env -u ALACRITTY_WINDOW_ID bash -ic ". '"'$ENV'"'; alias ls" 2>/dev/null </dev/null)" = "alias ls='"'ls --color=auto'"'" ]'
 
 # fastfetch only in a top-level Alacritty shell, once
 n=$(env -u TMUX ALACRITTY_WINDOW_ID=1 bash -ic ". '$ENV'; . '$ENV'" 2>/dev/null </dev/null | grep -c "Software")
