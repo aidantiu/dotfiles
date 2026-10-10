@@ -78,7 +78,7 @@ Layout:
 - Venv: `($(basename $VIRTUAL_ENV))` in green when set; `VIRTUAL_ENV_DISABLE_PROMPT=1`.
 - Duration: shown in dim text when last command ≥ 3s (DEBUG trap timestamp).
 - `❯` gold on exit 0, red on non-zero.
-- Blank line before prompt except on first prompt / after clear.
+- Blank line before every prompt except the first one in a shell.
 
 ## 5. tmux — `tmux/nightswim.conf`
 
@@ -89,7 +89,6 @@ Layout:
 - Windows: inactive `#I #W` in dim lilac text; current window in gold pill.
 - Right: `%H:%M` in surface pill.
 - Pane borders `#2a2f55`, active `#9a8cc8`; message/mode styles from palette.
-- `nightswim.conf` linked to `~/.config/tmux/nightswim.conf`.
 
 ## 6. Extras
 
@@ -97,7 +96,7 @@ Layout:
 
 - **fastfetch** — `fastfetch/.config/fastfetch/config.jsonc` + `nightswim.txt` (crescent moon over waves, gold/lilac). Boxed "Software" / "Hardware" sections (Joshua's layout). Auto-run in `.bashrc` only when interactive and `$TMUX` is unset.
 - **cava** — `cava/.config/cava/config`: gradient `#3b4170 → #9a8cc8 → #d79bc9 → #e8a95b`, transparent bg, bar width 2, spacing 1.
-- **eza** — `alias ls='eza --icons --group-directories-first'`, `ll`, `la`; `EZA_COLORS` mapped to palette (dirs lilac, exec gold, symlinks cyan).
+- **eza / ls** — `ls`/`ll`/`la`/`l` stay GNU ls (no breaking flag changes, e.g. `ls -lt`), themed via `LS_COLORS` overrides (dirs lilac, exec gold, symlinks cyan). eza only as new aliases `lx` (long + git) and `lt` (tree), with `EZA_COLORS`.
 - **fzf** — `FZF_DEFAULT_OPTS` with `--color` from palette, rounded border, `❯` pointer.
 - **bat + delta** — `nightswim/Nightswim.tmTheme` installed to `~/.config/bat/themes`, `batcat cache --build`; `BAT_THEME=Nightswim`. `.gitconfig` gets `core.pager=delta`, `delta.syntax-theme=Nightswim`, side-by-side off, navigate on.
 - Shell env lives in `bash/nightswim-env.sh`, sourced from `.bashrc`.
@@ -115,7 +114,7 @@ dotfiles/
 ```
 - Existing repo convention is per-tool dirs linked manually / `stow .`. Linking is done by an idempotent `nightswim/install.sh` that creates explicit symlinks (`ln -sfn`), since `stow .` from repo root would link macOS-only dirs too.
 - **Done already (pre-rice):** `.bashrc`, `.profile`, `.bash_profile`, `~/bashconfigs`, `.zshrc`, `.zprofile`, `.tmux.conf`, `.gitconfig`, `~/.config/git`, `~/.config/nvim` live in the repo and are symlinked by `install-linux.sh`. Secrets moved to untracked `~/.secrets.sh`.
-- Rice changes edit the repo files directly (`bash/.bashrc` gets `source` lines for `prompt.sh` / `nightswim-env.sh`); new links (alacritty, fastfetch, cava, `~/.config/tmux/nightswim.conf`) are added to `install-linux.sh`.
+- Rice changes edit the repo files directly (`bash/.bashrc` gets `source` lines for `prompt.sh` / `nightswim-env.sh`); new links (alacritty, bat, fastfetch, cava) are added to `install-linux.sh`.
 - Before changing behavior, back up to `~/.rice-backup-2026-10-10/`.
 
 ## Error handling / rollback
