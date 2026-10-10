@@ -5,6 +5,8 @@
 #
 #   model  lilac | dir  blue | git  green (gold + * when dirty)
 #   context  cyan → gold ≥60% → red ≥80% | cost  lavender (USD)
+#   5h / wk  plan usage limits (% used, ↻ time until reset), same colours as context;
+#            only shown when Claude Code sends rate_limits (subscription plans)
 #
 # Also forwards the payload to Orca's statusline hook (rate-limit tracking) in
 # the background, since this replaces the statusLine Orca installed.
@@ -15,7 +17,7 @@ COST_BG=bdb3d6;  WARN_BG=e8a95b; ERR_BG=c9566b
 
 # Nerd Font glyphs as escapes (literal private-use chars get mangled by editors)
 CAP_L=$'' CAP_R=$'' SEP=$''
-I_MODEL=$'' I_DIR=$'' I_GIT=$'' I_CTX=$'' I_USD=$''
+I_MODEL=$'' I_DIR=$'' I_GIT=$'' I_CTX=$'' I_USD=$'' I_5H=$'󰔛' I_WK=$'󰃭'
 
 input=$(cat)
 
@@ -34,9 +36,14 @@ mapfile -t f < <(printf '%s' "$input" | jq -r '
     (.context_window.used_percentage // ""),
     ((.context_window.current_usage // {})
       | (.input_tokens // 0) + (.output_tokens // 0)
-      + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0))' 2>/dev/null)
+      + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0)),
+    (.rate_limits.five_hour.used_percentage // ""),
+    (.rate_limits.five_hour.resets_at // ""),
+    (.rate_limits.seven_day.used_percentage // ""),
+    (.rate_limits.seven_day.resets_at // "")' 2>/dev/null)
 cwd=${f[0]:-$PWD}; model=${f[1]:-?}; cost=${f[2]:-0}
 win=${f[3]}; pct=${f[4]}; used=${f[5]:-0}
+h5=${f[6]}; h5_at=${f[7]}; wk=${f[8]}; wk_at=${f[9]}
 dir=${cwd/#$HOME/\~}
 
 # ---- git (read-only: never rewrites .git/index, so no index.lock clashes) --
@@ -58,6 +65,30 @@ if [ -n "$win" ] && [ -n "$pct" ] && [ "$used" != 0 ]; then
     ctx="$(fmt_tok "$used")/$(fmt_tok "$win") (${pct_r}%)"
 fi
 
+# ---- plan usage limits -----------------------------------------------------
+now=$(date +%s)
+until_txt() { # time until <epoch>: 6d1h / 2h10m / 25m ("" if past)
+    local s=$(( $1 - now ))
+    [ "$s" -gt 0 ] || return 0
+    if   [ "$s" -ge 86400 ]; then printf '%dd%dh' $((s / 86400)) $((s % 86400 / 3600))
+    elif [ "$s" -ge 3600 ]; then printf '%dh%02dm' $((s / 3600)) $((s % 3600 / 60))
+    else                        printf '%dm' $((s / 60)); fi
+}
+limit_bg() { # % → cyan / gold ≥60 / red ≥80
+    if   [ "$1" -ge 80 ]; then echo "$ERR_BG"
+    elif [ "$1" -ge 60 ]; then echo "$WARN_BG"
+    else                       echo "$CTX_BG"; fi
+}
+h5_txt=""; wk_txt=""
+if [ -n "$h5" ]; then
+    h5=$(awk -v p="$h5" 'BEGIN{printf "%d", p+0.5}')
+    h5_txt="5h ${h5}%"; [ -n "$h5_at" ] && r=$(until_txt "$h5_at") && [ -n "$r" ] && h5_txt+=" ↻$r"
+fi
+if [ -n "$wk" ]; then
+    wk=$(awk -v p="$wk" 'BEGIN{printf "%d", p+0.5}')
+    wk_txt="wk ${wk}%"; [ -n "$wk_at" ] && r=$(until_txt "$wk_at") && [ -n "$r" ] && wk_txt+=" ↻$r"
+fi
+
 # ---- cost (USD, as Claude reports it) --------------------------------------
 cost_txt=$(printf '$%.2f' "$cost")
 
@@ -75,6 +106,8 @@ if [ -n "$ctx" ]; then
     elif [ "$pct_r" -ge 60 ]; then seg "$I_CTX" "$WARN_BG" "$ctx"
     else                           seg "$I_CTX" "$CTX_BG"  "$ctx"; fi
 fi
+[ -n "$h5_txt" ] && seg "$I_5H" "$(limit_bg "$h5")" "$h5_txt"
+[ -n "$wk_txt" ] && seg "$I_WK" "$(limit_bg "$wk")" "$wk_txt"
 seg "$I_USD" "$COST_BG" "$cost_txt"
 
 # ---- render: rounded caps on the default bg (keeps window transparency) -----

@@ -18,6 +18,13 @@ payload() { # payload <used_pct>  (omit pct → no context_window field)
   printf '{"workspace":{"current_dir":"%s"},"model":{"display_name":"Opus 5.5","id":"claude-opus-5-5"},"cost":{"total_cost_usd":1.234},"rate_limits":{}%s}' "$repo" "$ctx"
 }
 run() { payload "$@" | bash "$SL" 2>&1; }
+# limits <5h_pct> <5h_resets_in_s> <7d_pct> <7d_resets_at>  → payload with rate_limits filled in
+limits() {
+  local now; now=$(date +%s)
+  payload 30 | jq -c --argjson a "$1" --argjson ar $((now + $2)) --argjson b "$3" --argjson br "$4" \
+    '.rate_limits = {five_hour: {used_percentage: $a, resets_at: $ar}, seven_day: {used_percentage: $b, resets_at: $br}}' |
+    bash "$SL" 2>&1
+}
 
 out=$(run 30)
 check "model pill (lilac)" '[[ $out == *"$(bg 9a8cc8)"*"Opus 5.5"* ]]'
@@ -34,6 +41,16 @@ out=$(run 30)
 check "always dollars, never pesos" '[[ $out == *" \$1.23"* && $out != *"₱"* ]]'
 rm -rf "$XDG_CACHE_HOME"; run 30 >/dev/null; sleep 0.3
 check "no exchange-rate fetching" '[ ! -e "$XDG_CACHE_HOME/claude-statusline" ]'
+
+wk=$(( $(date +%s) + 3*86400 + 3600 + 30 ))
+out=$(limits 5 7830 21 "$wk")
+check "session limit pill: % and time to reset" '[[ $out == *"$(bg 8cc4d4)"*"5h 5% "*"2h10m"* ]]'
+check "weekly limit pill: % and days to reset" '[[ $out == *"wk 21% ↻3d1h"* ]]'
+check "limit pills sit before cost" '[[ $out == *"5h 5%"*"wk 21%"*"\$1.23"* ]]'
+check "session limit 65% (gold)" '[[ $(limits 65 600 10 "$wk") == *"$(bg e8a95b)"*"5h 65%"* ]]'
+check "weekly limit 90% (red)" '[[ $(limits 5 600 90 "$wk") == *"$(bg c9566b)"*"wk 90%"* ]]'
+check "under an hour shows minutes only" '[[ $(limits 5 1500 10 "$wk") == *"5h 5% "*"25m"* && $(limits 5 1500 10 "$wk") != *"0h25m"* ]]'
+check "no rate_limits → no limit pills" '[[ $(run 30) != *"5h "* && $(run 30) != *"wk "* ]]'
 
 check "context 65% (gold)" '[[ $(run 65) == *"$(bg e8a95b)"*"(65%)"* ]]'
 check "context 85% (red)" '[[ $(run 85) == *"$(bg c9566b)"*"(85%)"* ]]'
