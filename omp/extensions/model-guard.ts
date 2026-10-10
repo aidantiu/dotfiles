@@ -23,9 +23,8 @@ export default function (pi: any) {
   // true = may proceed with `m`
   async function gate(ctx: any, m: ModelInfo | undefined, what: string): Promise<boolean> {
     if (!m) return true;
-    const all: ModelInfo[] = ctx.models.list();
     const cfg = config(ctx);
-    if (!isRestricted(m, all, cfg) || approvals.has(modelKey(m))) return true;
+    if (!isRestricted(m, cfg) || approvals.has(modelKey(m))) return true;
     if (ctx.hasUI && ctx.mode !== "print") {
       const ok = await ctx.ui.confirm("Premium model", `Use ${label(m)} for ${what}? (asked once per session)`);
       if (ok) { approvals.approve(modelKey(m)); return true; }

@@ -34,7 +34,7 @@ reqs() { local c; c=$(grep -c "$1" "$tmp/req.log" 2>/dev/null); echo "${c:-0}"; 
 : > "$tmp/req.log"; o=$($E $F no "hello")
 check "decline: asked once" '[[ $o == *"\"confirms\":1"* ]]'
 check "decline: fable never called" '[ "$(reqs fake-fable-5)" = 0 ]'
-check "decline: switched to fallback (fake-mini)" '[[ $o == *"\"finalModel\":\"fakeco/fake-mini\""* ]]'
+check "decline: switched to fallback (fake-sonnet: priciest allowed, strictly cheaper)" '[[ $o == *"\"finalModel\":\"fakeco/fake-sonnet\""* ]]'
 
 : > "$tmp/req.log"; o=$($E $F yes "one" "two")
 check "accept: asked once for two messages" '[[ $o == *"\"confirms\":1"* ]]'
@@ -47,7 +47,7 @@ check "unrestricted model: no question" '[[ $o == *"\"confirms\":0"* ]] && [ "$(
 check "no UI: restricted model never called" '[ "$(reqs fake-fable-5)" = 0 ]'
 
 : > "$tmp/req.log"; timeout 60 omp -p --no-session --model $F "hi" >/dev/null 2>&1 </dev/null; rc=$?
-check "print mode (-p): restricted model never called, fallback used" '[ "$(reqs fake-fable-5)" = 0 ] && [ "$(reqs fake-mini)" -ge 1 ] && [ $rc -ne 124 ]'
+check "print mode (-p): restricted model never called, fallback used" '[ "$(reqs fake-fable-5)" = 0 ] && [ "$(reqs fake-sonnet)" -ge 1 ] && [ $rc -ne 124 ]'
 
 : > "$tmp/req.log"; timeout 60 omp -p --no-session --model lonelyco/lonely-fable "hi" >/dev/null 2>"$tmp/err" </dev/null; rc=$?
 check "print mode, no fallback: lonely-fable never called, no hang" '[ "$(reqs lonely-fable)" = 0 ] && [ $rc -ne 124 ]'

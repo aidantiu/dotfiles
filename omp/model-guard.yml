@@ -1,9 +1,27 @@
-# Nightswim model guard — models that ask before use (once per session per model).
-# Patterns match "provider/model" or the bare model id; * is a wildcard.
+# Nightswim model guard — premium models ask before use (once per session per model).
+# A model asks when it is NOT in `allow` AND (it matches `restrict` OR its input price >= priceThreshold).
+# Patterns match "provider/model" or the bare model id; * is a wildcard; case-insensitive.
+# A list written here replaces the built-in default list (keep these in sync with policy.ts DEFAULT_CONFIG).
 restrict:
   - "*fable*"
-  - "*gpt-6-astra*"
-# Never ask for these (overrides restrict and the auto top tier):
+  - "*astra*"
+  - "*mythos*"
+  - "*-pro"
+  - "*-pro-*"
+# Never ask for these (overrides restrict AND the price rule):
 allow:
-# Also restrict each provider's most expensive tier ("big leagues"):
-autoTopTier: true
+  - "*opus*"
+  - "*-sol"
+  - "*-sol-*"
+  - "*-luna"
+  - "*-luna-*"
+  - "*-terra"
+  - "*-terra-*"
+# USD per 1M input tokens (catalog cost.input). Models at or above this ask. 0 disables the price rule;
+# models without a price in the catalog are judged by the name patterns only.
+priceThreshold: 4
+#
+# Declining a premium model switches to the priciest model of the same provider that is allowed and
+# strictly cheaper; if there is none, to your @default role model (when it is allowed); otherwise the
+# message is not sent. No default model is pinned here. To pin one (after logging in), e.g.:
+#   omp config set modelRoles '{"default":"anthropic/claude-sonnet-5-5"}'   (replaces the whole modelRoles map)
