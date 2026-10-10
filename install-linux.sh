@@ -47,6 +47,9 @@ link cava                "$HOME/.config/cava"
 link omp/config.yml      "$HOME/.omp/agent/config.yml"
 # nsws: toggle "new terminal gets its own workspace"
 link bin/nsws            "$HOME/.local/bin/nsws"
+# workmux: generate config from detected agent CLIs
+link bin/wm-agents       "$HOME/.local/bin/wm-agents"
+"$DOT/bin/wm-agents" >/dev/null || true
 # auto-maximize new Alacritty windows (WM ignores startup_mode = "Maximized")
 link nightswim/systemd/nightswim-automax.service "$HOME/.config/systemd/user/nightswim-automax.service"
 systemctl --user daemon-reload && systemctl --user enable --now nightswim-automax >/dev/null 2>&1 || true

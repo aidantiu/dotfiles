@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Detect installed coding agents and render the workmux config.
+#   wm-agents [output]   (default ~/.config/workmux/config.yaml)
+set -euo pipefail
+DOT="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+out="${1:-${XDG_CONFIG_HOME:-$HOME/.config}/workmux/config.yaml}"
+agents=""; default=""
+add() { # add <name> <binary> <yaml body>
+  command -v "$2" >/dev/null || return 0
+  agents+="  $1: $3"$'\n'; [ -n "$default" ] || default="$1"
+}
+add omp    omp          "{ type: omp, command: omp }"
+add claude claude       "{ type: claude, command: claude }"
+add codex  codex        "{ type: codex, command: codex }"
+add cursor cursor-agent "{ command: cursor-agent }"
+[ -n "$default" ] || { echo "wm-agents: no agent CLI found (omp, claude, codex, cursor-agent)" >&2; exit 1; }
+mkdir -p "$(dirname "$out")"
+awk -v agent="$default" -v agents="${agents%$'\n'}" '
+  /@@AGENTS@@/ { print agents; next } { gsub(/@@AGENT@@/, agent); print }' \
+  "$DOT/workmux/config.template.yaml" > "$out.tmp" && mv "$out.tmp" "$out"
+echo "workmux agents: $(grep -oE '^  [a-z]+:' "$out" | tr -d ' :' | paste -sd' ') (default: $default)"
