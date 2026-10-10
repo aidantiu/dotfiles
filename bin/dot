@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# dot — Nightswim shortcut cheat sheet.  dot | dot -h | dot --help
+set -euo pipefail
+if [ $# -gt 1 ] || { [ $# -eq 1 ] && [ "$1" != -h ] && [ "$1" != --help ]; }; then
+  echo "usage: dot [-h|--help]" >&2
+  exit 2
+fi
+cat <<'EOF'
+Nightswim shortcuts
+
+Window  (Alacritty has no title bar)
+  Super+,              minimize
+  Super+Left           tile left
+  Super+Right          tile right
+  Alt+F10              toggle maximize
+  Alt+F4               close
+  Super+Shift+arrows   move the window to another monitor
+
+Alacritty
+  Ctrl+Shift+O         open the URL under the cursor
+  Shift+Enter          send a newline inside Claude Code and similar TUIs
+  nightswim-automax    new windows start maximized
+
+Workspace
+  Super+Shift+N        toggle whether a new terminal opens on its own workspace
+  nsws                 on|off|toggle|status
+
+tmux
+  prefix is Ctrl+S
+  prefix+w             open the workmux dashboard in a popup
+  prefix+W             open or switch to a standing dashboard window
+  copy mode            v selects and y copies
+
+workmux  (each task = branch + worktree + window running omp)
+  wm add <b> -p "task" start a task (-b background, -e editor prompt, -a claude)
+  wm add -A -p "task"  start a task and name the branch from the prompt
+  workmux send <b> "…" send more instructions to the agent
+  workmux capture <b>  show the agent's recent output
+  workmux merge <b>    merge into main and clean up (--squash, -k keeps it)
+  workmux rm <b>       abandon the task without merging
+  workmux close|open   hide or reopen a task's window
+  workmux resurrect    reopen task windows after a reboot
+  wm-agents            re-detect agents after installing one
+  dashboard keys       Enter go · p peek · i type · d diff (c commit, m merge)
+
+omp
+  omp                  start in the current directory (--model <name>)
+  omp -c | omp -r      continue the last session | pick one to resume
+  omp -p "…"           one-shot answer, then exit
+  Esc                  interrupt the agent
+  Alt+P | Alt+M        pick a model for now | save it as a role (default)
+  Ctrl+P               cycle the role models
+  Shift+Tab            change the thinking level
+  Alt+Shift+P          toggle plan mode
+  Alt+A                agent hub (Ctrl+S is taken by the tmux prefix)
+  !cmd                 run a shell command
+  /git                 diff, staging and commit UI
+  /model-guard         show which premium models ask first
+EOF
