@@ -1,0 +1,9 @@
+# Nightswim model guard — models that ask before use (once per session per model).
+# Patterns match "provider/model" or the bare model id; * is a wildcard.
+restrict:
+  - "*fable*"
+  - "*gpt-6-astra*"
+# Never ask for these (overrides restrict and the auto top tier):
+allow:
+# Also restrict each provider's most expensive tier ("big leagues"):
+autoTopTier: true
