@@ -21,9 +21,11 @@ check "no config errors/warnings" '! grep -qE "ERROR|WARN.*(config|Unused)" <<<"
 check "linked into ~/.config" '[ "$(readlink -f ~/.config/alacritty/alacritty.toml)" = "$CFG" ]'
 # A real window must ask the WM for no title bar (_MOTIF_WM_HINTS decorations = 0)
 CFG_UNDER_TEST=${CFG_UNDER_TEST:-$CFG}
+orig=$(xprop -root _NET_CURRENT_DESKTOP | awk '{print $NF}')   # automax may switch workspace
 alacritty --config-file "$CFG_UNDER_TEST" --title ns-titlebar-test -e sleep 4 >/dev/null 2>&1 &
 sleep 2
 hints=$(xprop -name ns-titlebar-test _MOTIF_WM_HINTS 2>/dev/null)
 wait
+/usr/bin/python3 "$(dirname "$0")/wnck_query.py" activate "$orig"
 check "new window has no title bar" '[[ $hints == *"= 0x2, 0x0, 0x0"* ]]'
 exit $fail
