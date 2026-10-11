@@ -47,6 +47,8 @@ link cava                "$HOME/.config/cava"
 link omp/config.yml      "$HOME/.omp/agent/config.yml"
 # nsws: toggle "new terminal gets its own workspace"
 link bin/nsws            "$HOME/.local/bin/nsws"
+# dot: Nightswim shortcut cheat sheet
+link bin/dot             "$HOME/.local/bin/dot"
 # workmux: generate config from detected agent CLIs
 link bin/wm-agents       "$HOME/.local/bin/wm-agents"
 link bin/wm            "$HOME/.local/bin/wm"

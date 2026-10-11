@@ -1,3 +1,6 @@
-# oh-my-pi settings (linked to ~/.omp/agent/config.yml). `omp config set` edits this file.
 extensions:
   - ~/dotfiles/omp/extensions/model-guard.ts
+modelRoles:
+  default: anthropic/claude-opus-5-5:medium
+symbolPreset: unicode
+setupVersion: 2
