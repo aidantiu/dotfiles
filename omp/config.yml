@@ -11,3 +11,6 @@ symbolPreset: unicode
 setupVersion: 2
 task:
   disabledAgents: []
+  showResolvedModelBadge: true
+display:
+  subagentLivePreview: true
