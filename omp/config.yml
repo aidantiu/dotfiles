@@ -2,5 +2,12 @@ extensions:
   - ~/dotfiles/omp/extensions/model-guard.ts
 modelRoles:
   default: anthropic/claude-opus-5-5:medium
+  plan: anthropic/claude-opus-5-5:high
+  slow: anthropic/claude-opus-5-5:high
+  task: anthropic/claude-sonnet-5-5
+  smol: cursor/composer-2.5-fast
+  frontend: anthropic/claude-sonnet-5-5
 symbolPreset: unicode
 setupVersion: 2
+task:
+  disabledAgents: []

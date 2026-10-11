@@ -45,6 +45,7 @@ link fastfetch           "$HOME/.config/fastfetch"
 link cava                "$HOME/.config/cava"
 # omp (oh-my-pi): config loads the model-guard extension
 link omp/config.yml      "$HOME/.omp/agent/config.yml"
+link omp/agents          "$HOME/.omp/agent/agents"   # custom sub-agents (frontend)
 # nsws: toggle "new terminal gets its own workspace"
 link bin/nsws            "$HOME/.local/bin/nsws"
 # dot: Nightswim shortcut cheat sheet
