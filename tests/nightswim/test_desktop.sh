@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Desktop checks: palette loads, wallpaper set, GNOME panel left alone.
 DOT=$(cd "$(dirname "$0")/../.." && pwd)
+. "$DOT/nightswim/gnome/host-env.sh"   # snap terminals otherwise read a non-dconf backend
 fail=0
 check() { if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
 
