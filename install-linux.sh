@@ -43,6 +43,12 @@ command -v batcat >/dev/null && batcat cache --build >/dev/null
 link fastfetch           "$HOME/.config/fastfetch"
 # cava
 link cava                "$HOME/.config/cava"
+# GTK3/GTK4 apps: Nightswim colours (GTK3 via adw-gtk3, see nightswim/gnome/install.sh)
+link nightswim/gnome/gtk.css "$HOME/.config/gtk-4.0/gtk.css"
+link nightswim/gnome/gtk.css "$HOME/.config/gtk-3.0/gtk.css"
+# vicinae launcher: settings + Nightswim theme
+link vicinae/settings.json  "$HOME/.config/vicinae/settings.json"
+link vicinae/themes/nightswim.toml "$HOME/.local/share/vicinae/themes/nightswim.toml"
 # omp (oh-my-pi): config loads the model-guard extension
 link omp/config.yml      "$HOME/.omp/agent/config.yml"
 link omp/agents          "$HOME/.omp/agent/agents"   # custom sub-agents (frontend)

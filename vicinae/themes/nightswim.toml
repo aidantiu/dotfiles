@@ -1,0 +1,76 @@
+# Nightswim — palette in ~/dotfiles/nightswim/palette.sh
+[meta]
+version = 1
+name = "Nightswim"
+description = "Night pool: navy water, lavender deck, gold reflections."
+variant = "dark"
+inherits = "vicinae-dark"
+
+[colors.core]
+background = "#0e1328"
+foreground = "#d6cfe8"
+secondary_background = "#151a35"
+border = "#2a2f55"
+accent = "#e8a95b"
+accent_foreground = "#0e1328"
+
+[colors.main_window]
+border = "#2a2f55"
+footer = { background = "colors.core.secondary_background" }
+
+[colors.settings_window]
+border = "#2a2f55"
+
+[colors.accents]
+blue = "#8497d6"
+green = "#86b3a0"
+magenta = "#d79bc9"
+orange = "#e8a95b"
+red = "#c9566b"
+yellow = "#f4c57f"
+cyan = "#8cc4d4"
+purple = "#9a8cc8"
+
+[colors.text]
+default = "colors.core.foreground"
+muted = "#6b6f9a"
+danger = "#e07a8c"
+success = "#86b3a0"
+placeholder = "#6b6f9a"
+selection = { background = "#e8a95b", foreground = "#0e1328" }
+
+[colors.text.links]
+default = "#f4c57f"
+visited = "#d79bc9"
+
+[colors.input]
+border = "#2a2f55"
+border_focus = "#e8a95b"
+border_error = "#c9566b"
+
+[colors.button.primary]
+background = "#2a2f55"
+foreground = "#d6cfe8"
+focus = { outline = "colors.core.accent" }
+
+[colors.list.item.hover]
+foreground = "#e6e0f2"
+secondary_foreground = "#e6e0f2"
+
+[colors.list.item.selection]
+background = "#2a2f55"
+foreground = "#e6e0f2"
+secondary_background = "#2a2f55"
+secondary_foreground = "#e6e0f2"
+
+[colors.grid.item]
+background = "#151a35"
+hover = { outline = "#9a8cc8" }
+selection = { outline = "#e8a95b" }
+
+[colors.scrollbars]
+background = "#2a2f55"
+
+[colors.loading]
+bar = "#e8a95b"
+spinner = "#d6cfe8"

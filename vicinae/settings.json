@@ -1,0 +1,13 @@
+{
+	"$schema": "https://vicinae.com/schemas/config.json",
+	"font": {
+		"normal": { "family": "Adwaita Sans" }
+	},
+	"theme": {
+		"light": { "name": "nightswim", "icon_theme": "WhiteSur-dark" },
+		"dark": { "name": "nightswim", "icon_theme": "WhiteSur-dark" }
+	},
+	"launcher_window": {
+		"size": { "width": 700, "height": 440 }
+	}
+}

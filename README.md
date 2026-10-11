@@ -23,6 +23,18 @@ Super+, minimize (`gsettings set org.gnome.desktop.wm.keybindings minimize "['<S
 New Alacritty windows are maximized by the `nightswim-automax` user service.
 `dot` or `dot --help` prints the live shortcut cheat sheet.
 
+### GNOME desktop rice — snapshots & recovery
+
+    ~/dotfiles/nightswim/gnome/install.sh   # fetch extensions/themes/icons/fonts (no sudo)
+    ~/dotfiles/nightswim/desktop.sh         # apply; snapshots the current desktop first
+    ~/dotfiles/nightswim/gnome/snapshot.sh list
+    ~/dotfiles/nightswim/gnome/snapshot.sh save <label>
+    ~/dotfiles/nightswim/gnome/snapshot.sh restore <name>   # then log out/in
+
+Snapshots live in `~/.nightswim-backups/` (full `dconf dump` + rice config files).
+Black screen after login: Ctrl+Alt+F3, log in, run `snapshot.sh restore <name>`,
+then `sudo systemctl restart gdm3`.
+
 Tests: `bash tests/nightswim/run_all.sh`
 
 ## Agents — oh-my-pi + workmux
