@@ -28,6 +28,7 @@ gsettings set $I document-font-name 'Adwaita Sans 11'
 gsettings set $I monospace-font-name '0xProto Nerd Font Mono 11'
 gsettings set $I clock-show-weekday true
 gsettings set $I clock-show-date true
+gsettings set $I clock-format 12h
 gsettings set $I show-battery-percentage true
 gsettings set org.gnome.desktop.wm.preferences titlebar-font 'Adwaita Sans Bold 11'
 
