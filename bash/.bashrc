@@ -204,3 +204,4 @@ fi
 
 # opencode
 export PATH=/home/hiraya/.opencode/bin:$PATH
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"   # rustup; absent on machines without Rust

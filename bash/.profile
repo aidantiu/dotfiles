@@ -43,3 +43,4 @@ export PATH="/home/hiraya/.local/bin:$PATH"
 
 # Kiro CLI post block. Keep at the bottom of this file.
 [[ $_WM_PANE != 1 ]] && [[ -f "${HOME}/.local/share/kiro-cli/shell/profile.post.bash" ]] && builtin source "${HOME}/.local/share/kiro-cli/shell/profile.post.bash"
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"   # rustup; absent on machines without Rust
