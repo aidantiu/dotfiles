@@ -64,6 +64,10 @@ link bin/wm            "$HOME/.local/bin/wm"
 link nightswim/systemd/nightswim-automax.service "$HOME/.config/systemd/user/nightswim-automax.service"
 systemctl --user daemon-reload && systemctl --user enable --now nightswim-automax >/dev/null 2>&1 || true
 
+# per-machine extras: hosts/<hostname>/install.sh (sourced, so it can use link)
+HOST_INSTALL="$DOT/hosts/$(hostname -s)/install.sh"
+[ -f "$HOST_INSTALL" ] && . "$HOST_INSTALL"
+
 # git hooks for this repo (strip AI co-author trailers)
 git -C "$DOT" config core.hooksPath .githooks
 

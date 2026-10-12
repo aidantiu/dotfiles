@@ -191,6 +191,9 @@ function conky_nightswim()
     conky_window.visual, conky_window.width, conky_window.height)
   local cr = cairo_create(cs)
   cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST)
+  -- Text scaling (Xft.dpi > 96) makes conky widen the window past 812; keep
+  -- the cards flush with its right edge so the gap_x margin still holds.
+  cairo_translate(cr, math.max(0, conky_window.width - 812), 0)
   github(cr, 1, 1, 420, 200)
   calendar(cr, 433, 1, 378, 200)
   system(cr, 433, 213, 378, 196)

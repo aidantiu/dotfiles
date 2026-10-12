@@ -1,6 +1,5 @@
 # Nightswim — palette in ~/dotfiles/nightswim/palette.sh
-[general]
-live_config_reload = true
+# live_config_reload defaults to true; no [general] section so Ubuntu's 0.13 accepts this file
 
 [window]
 opacity = 0.82

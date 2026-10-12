@@ -23,6 +23,18 @@ Super+, minimize (`gsettings set org.gnome.desktop.wm.keybindings minimize "['<S
 New Alacritty windows are maximized by the `nightswim-automax` user service.
 `dot` or `dot --help` prints the live shortcut cheat sheet.
 
+### Per-machine overrides — `hosts/<hostname>/`
+
+Shared configs stay the same on every laptop; anything machine-specific lives in
+`hosts/$(hostname -s)/` and is picked up automatically when that folder exists:
+
+    hosts/<host>/install.sh   sourced at the end of install-linux.sh (can use `link`)
+    hosts/<host>/desktop.sh   sourced at the end of nightswim/desktop.sh (can use `xs`, `custom_key`)
+    hosts/<host>/conky.lua    loaded at the end of conky.conf (edit `conky.config`)
+
+`hosts/ymnwricmp/` is the ThinkPad X1 Carbon 4th gen (Wayland, HD 520): lighter blur,
+Vicinae on Alt+Space, centred windows, 1.25× text, conky pinned to the laptop panel.
+
 ### GNOME desktop rice — snapshots & recovery
 
     ~/dotfiles/nightswim/gnome/install.sh   # fetch extensions/themes/icons/fonts (no sudo)

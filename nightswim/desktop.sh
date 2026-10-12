@@ -135,3 +135,8 @@ NoDisplay=true
 EOF
 pgrep -f "nightswim/widgets/conky.conf" >/dev/null ||
   (setsid "$HOME/.local/bin/conky" -c "$DOT/nightswim/widgets/conky.conf" >/dev/null 2>&1 &)
+
+# --- per-machine overrides: hosts/<hostname>/desktop.sh ----------------------
+# Sourced last, so it can reuse xs/custom_key and override anything above.
+HOST_DESKTOP="$DOT/hosts/$(hostname -s)/desktop.sh"
+if [ -f "$HOST_DESKTOP" ]; then echo "host overrides: $HOST_DESKTOP"; . "$HOST_DESKTOP"; fi
