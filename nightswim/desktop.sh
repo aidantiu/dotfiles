@@ -39,6 +39,7 @@ NS_EXTS=(
   just-perfection-desktop@just-perfection
   weatheroclock@CleoMenezesJr.github.io
   kiwimenu@kemma
+  vicinae@dagimg-dot   # clipboard + window APIs for Vicinae on Wayland
 )
 # Add to enabled-extensions (and drop from disabled) without touching others;
 # works before the shell has loaded them, unlike `gnome-extensions enable`.
@@ -77,6 +78,7 @@ xs $J $JS clock-menu-position 0               # centre
 
 xs weatheroclock@CleoMenezesJr.github.io org.gnome.shell.extensions.weather-oclock weather-after-clock true
 xs kiwimenu@kemma org.gnome.shell.extensions.kiwimenu icon 0   # GNOME foot
+xs vicinae@dagimg-dot org.gnome.shell.extensions.vicinae show-status-indicator false   # Vicinae already has a tray icon
 
 # --- dock (Ubuntu Dock = Dash to Dock fork): floating, bottom, themed ------
 # (No Vitals/System Monitor in the bar: Vitals coincided with the 2026-10-11

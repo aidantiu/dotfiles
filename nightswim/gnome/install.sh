@@ -25,6 +25,7 @@ EXTS=(
   just-perfection-desktop@just-perfection
   weatheroclock@CleoMenezesJr.github.io
   kiwimenu@kemma
+  vicinae@dagimg-dot   # clipboard + window APIs for Vicinae on Wayland
 )
 for uuid in "${EXTS[@]}"; do
   if have "$DATA/gnome-shell/extensions/$uuid"; then echo "ok      $uuid"; continue; fi
