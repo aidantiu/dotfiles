@@ -52,6 +52,7 @@ link vicinae/themes/nightswim.toml "$HOME/.local/share/vicinae/themes/nightswim.
 # omp (oh-my-pi): config loads the model-guard extension
 link omp/config.yml      "$HOME/.omp/agent/config.yml"
 link omp/agents          "$HOME/.omp/agent/agents"   # custom sub-agents (frontend)
+link omp/themes          "$HOME/.omp/agent/themes"   # Nightswim TUI theme
 # nsws: toggle "new terminal gets its own workspace"
 link bin/nsws            "$HOME/.local/bin/nsws"
 # dot: Nightswim shortcut cheat sheet
