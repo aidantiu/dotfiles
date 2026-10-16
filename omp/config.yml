@@ -17,3 +17,4 @@ display:
 defaultThinkingLevel: auto
 theme:
   dark: nightswim
+hideThinkingBlock: false
