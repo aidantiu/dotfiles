@@ -32,6 +32,7 @@ gsettings set $I clock-format 12h
 gsettings set $I show-battery-percentage true
 gsettings set org.gnome.desktop.wm.preferences titlebar-font 'Adwaita Sans Bold 11'
 gsettings set org.gnome.desktop.wm.keybindings minimize "['<Super>comma']"
+gsettings set org.gnome.desktop.wm.keybindings show-desktop "['<Super>d']"
 gsettings set org.gnome.desktop.peripherals.mouse left-handed true   # swapped buttons
 
 # --- shell extensions ---------------------------------------------------------
