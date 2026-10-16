@@ -1,4 +1,5 @@
--- Nightswim desktop widgets for conky: GitHub contributions, calendar, system.
+-- Nightswim desktop widgets for conky: GitHub contributions, calendar,
+-- checklist (checklist.lua), system.
 -- Colours mirror nightswim/palette.sh. Data for the GitHub card comes from
 -- gh-contrib.py (cached in ~/.cache/nightswim/gh-contrib.txt).
 -- The conky AppImage bakes its build directory into package.cpath; point it
@@ -42,17 +43,48 @@ local function card(cr, x, y, w, h)
   cairo_set_line_width(cr, 1); rgba(cr, C.edge); cairo_stroke(cr)
 end
 
--- text(cr, s, x, y, size, colour, {bold=, align='l'|'r'|'c', font=})
-local function text(cr, s, x, y, size, c, o)
-  o = o or {}
+local function font(cr, size, o)
   cairo_select_font_face(cr, o.font or FONT, CAIRO_FONT_SLANT_NORMAL,
     o.bold and CAIRO_FONT_WEIGHT_BOLD or CAIRO_FONT_WEIGHT_NORMAL)
   cairo_set_font_size(cr, size)
+end
+
+local function measure(cr, s, size, o)
+  font(cr, size, o or {})
   local ext = cairo_text_extents_t:create()
   cairo_text_extents(cr, s, ext)
-  if o.align == 'r' then x = x - ext.x_advance elseif o.align == 'c' then x = x - ext.x_advance / 2 end
-  cairo_move_to(cr, x, y); rgba(cr, c); cairo_show_text(cr, s)
   return ext.x_advance
+end
+
+-- text(cr, s, x, y, size, colour, {bold=, align='l'|'r'|'c', font=})
+local function text(cr, s, x, y, size, c, o)
+  o = o or {}
+  local adv = measure(cr, s, size, o)
+  if o.align == 'r' then x = x - adv elseif o.align == 'c' then x = x - adv / 2 end
+  cairo_move_to(cr, x, y); rgba(cr, c); cairo_show_text(cr, s)
+  return adv
+end
+
+-- Nerd Font glyph (codepoint) centred on cx, cy by its ink box.
+local function icon(cr, cp, cx, cy, size, c)
+  local s = utf8.char(cp)
+  font(cr, size, { font = ICON_FONT })
+  local ext = cairo_text_extents_t:create()
+  cairo_text_extents(cr, s, ext)
+  cairo_move_to(cr, cx - ext.x_bearing - ext.width / 2, cy - ext.y_bearing - ext.height / 2)
+  rgba(cr, c); cairo_show_text(cr, s)
+end
+
+-- Shorten s with an ellipsis until it fits in maxw.
+local function fit(cr, s, size, maxw, o)
+  if measure(cr, s, size, o) <= maxw then return s end
+  local n = utf8.len(s) or #s
+  while n > 0 do
+    n = n - 1
+    local t = s:sub(1, (utf8.offset(s, n + 1) or #s + 1) - 1) .. '…'
+    if measure(cr, t, size, o) <= maxw then return t end
+  end
+  return '…'
 end
 
 local function cell(cr, x, y, s, level)
@@ -162,24 +194,66 @@ local function bar(cr, x, y, w, frac, c)
   if frac > 0 then rrect(cr, x, y, math.max(8, w * frac), 8, 4); rgba(cr, c); cairo_fill(cr) end
 end
 
+-- Battery glyph for the charge level / state in /sys (md-battery_*).
+local function battery_icon(pct)
+  local f = io.open('/sys/class/power_supply/BAT0/status')
+  local status = f and f:read('*l') or ''
+  if f then f:close() end
+  if status == 'Charging' then return 0xf0084 end
+  if pct >= 95 or status == 'Full' then return 0xf0079 end
+  if pct < 5 then return 0xf0083 end
+  return 0xf007a + math.max(0, math.min(8, math.floor(pct / 10) - 1))
+end
+
 local function system(cr, x, y, w, h)
   card(cr, x, y, w, h)
   local p = 20
-  text(cr, 'SYSTEM', x + p, y + 36, 12, { hex(C.gold) }, { bold = true })
-  text(cr, 'up ' .. conky_parse('${uptime_short}'), x + w - p, y + 36, 12, C.dim, { bold = true, align = 'r' })
+  icon(cr, 0xf0379, x + p + 7, y + 31, 15, { hex(C.gold) })               -- md-monitor
+  text(cr, 'SYSTEM', x + p + 22, y + 36, 12, { hex(C.gold) }, { bold = true })
+  local up = text(cr, 'up ' .. conky_parse('${uptime_short}'), x + w - p, y + 36, 12, C.dim,
+    { bold = true, align = 'r' })
+  icon(cr, 0xf0150, x + w - p - up - 11, y + 31.5, 13, C.dim)            -- md-clock_outline
+  local battery = tonumber(conky_parse('${battery_percent BAT0}')) or 0
   local rows = {
-    { 'CPU', tonumber(conky_parse('${cpu cpu0}')) or 0, C.lilac },
-    { 'RAM', tonumber(conky_parse('${memperc}')) or 0, C.cyan },
-    { 'Disk', tonumber(conky_parse('${fs_used_perc /}')) or 0, C.pink },
-    { 'Battery', tonumber(conky_parse('${battery_percent BAT0}')) or 0, C.green },
+    { 0xf061a, 'CPU', tonumber(conky_parse('${cpu cpu0}')) or 0, C.lilac },     -- md-chip
+    { 0xf035b, 'RAM', tonumber(conky_parse('${memperc}')) or 0, C.cyan },       -- md-memory
+    { 0xf02ca, 'Disk', tonumber(conky_parse('${fs_used_perc /}')) or 0, C.pink }, -- md-harddisk
+    { battery_icon(battery), 'Battery', battery, C.green },
   }
   local top, step = y + 70, (h - 92) / (#rows - 1)
   for i, r in ipairs(rows) do
     local ry = top + (i - 1) * step
-    text(cr, r[1], x + p, ry, 12.5, C.fg, { bold = true })
-    bar(cr, x + 96, ry - 8, w - 96 - p - 52, r[2] / 100, r[3])
-    text(cr, string.format('%d%%', r[2]), x + w - p, ry, 12.5, C.bright, { bold = true, align = 'r' })
+    local c = r[4]
+    rrect(cr, x + p, ry - 17, 24, 24, 7); cairo_set_source_rgba(cr, c[1], c[2], c[3], 0.16); cairo_fill(cr)
+    icon(cr, r[1], x + p + 12, ry - 5, 14, c)
+    text(cr, r[2], x + p + 34, ry, 12.5, C.fg, { bold = true })
+    bar(cr, x + p + 100, ry - 8, w - 2 * p - 100 - 50, r[3] / 100, c)
+    text(cr, string.format('%d%%', r[3]), x + w - p, ry, 12.5, C.bright, { bold = true, align = 'r' })
   end
+end
+
+-- Checklist ----------------------------------------------------------------------
+local checklist = dofile(HERE .. 'checklist.lua')({
+  C = C, hex = hex, rgba = rgba, rrect = rrect, card = card, text = text, icon = icon,
+  fit = fit, measure = measure, MONTHS = MONTHS,
+})
+local CHECKLIST = { 1, 213, 420, 196 }
+local dx            -- drawing offset applied by cairo_translate below
+local region_dx     -- offset the window's input region was last set for
+
+-- conky makes the window click-through; give it an input region over the
+-- checklist card (re-applied when the drawing offset moves the card).
+local function claim_input()
+  if region_dx == dx then return end
+  region_dx = dx
+  local r = CHECKLIST
+  os.execute(string.format("python3 '%sinput-region.py' %d %d %d %d >/dev/null 2>&1 &",
+    HERE, r[1] + dx, r[2], r[3], r[4]))
+end
+
+function conky_nightswim_mouse(ev)
+  if not dx then return false end
+  return checklist.mouse(ev, dx)
 end
 
 -- Layout (window is 812×412; see conky.conf) ---------------------------------
@@ -193,10 +267,13 @@ function conky_nightswim()
   cairo_set_antialias(cr, CAIRO_ANTIALIAS_BEST)
   -- Text scaling (Xft.dpi > 96) makes conky widen the window past 812; keep
   -- the cards flush with its right edge so the gap_x margin still holds.
-  cairo_translate(cr, math.max(0, conky_window.width - 812), 0)
+  dx = math.max(0, conky_window.width - 812)
+  cairo_translate(cr, dx, 0)
   github(cr, 1, 1, 420, 200)
   calendar(cr, 433, 1, 378, 200)
+  checklist.draw(cr, table.unpack(CHECKLIST))
   system(cr, 433, 213, 378, 196)
   cairo_destroy(cr)
   cairo_surface_destroy(cs)
+  claim_input()
 end

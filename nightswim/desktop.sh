@@ -132,7 +132,7 @@ cat > "$HOME/.config/autostart/nightswim-widgets.desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=Nightswim widgets
-Comment=conky cards: GitHub contributions, calendar, system
+Comment=conky cards: GitHub contributions, calendar, checklist, system
 Exec=sh -c 'sleep 4; exec $HOME/.local/bin/conky -c $DOT/nightswim/widgets/conky.conf'
 X-GNOME-Autostart-enabled=true
 NoDisplay=true
