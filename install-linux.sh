@@ -49,6 +49,8 @@ link nightswim/gnome/gtk.css "$HOME/.config/gtk-3.0/gtk.css"
 # vicinae launcher: settings + Nightswim theme
 link vicinae/settings.json  "$HOME/.config/vicinae/settings.json"
 link vicinae/themes/nightswim.toml "$HOME/.local/share/vicinae/themes/nightswim.toml"
+# start Vicinae after the AppIndicator tray is up (else its icon shows twice)
+link nightswim/systemd/vicinae-wait-for-tray.conf "$HOME/.config/systemd/user/vicinae.service.d/wait-for-tray.conf"
 # omp (oh-my-pi): config loads the model-guard extension
 link omp/config.yml      "$HOME/.omp/agent/config.yml"
 link omp/agents          "$HOME/.omp/agent/agents"   # custom sub-agents (frontend)

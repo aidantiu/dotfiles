@@ -31,13 +31,14 @@ gsettings set $I clock-show-date true
 gsettings set $I clock-format 12h
 gsettings set $I show-battery-percentage true
 gsettings set org.gnome.desktop.wm.preferences titlebar-font 'Adwaita Sans Bold 11'
+gsettings set org.gnome.desktop.wm.keybindings minimize "['<Super>comma']"
+gsettings set org.gnome.desktop.peripherals.mouse left-handed true   # swapped buttons
 
 # --- shell extensions ---------------------------------------------------------
 NS_EXTS=(
   user-theme@gnome-shell-extensions.gcampax.github.com
   blur-my-shell@aunetx
   just-perfection-desktop@just-perfection
-  weatheroclock@CleoMenezesJr.github.io
   kiwimenu@kemma
   vicinae@dagimg-dot   # clipboard + window APIs for Vicinae on Wayland
 )
@@ -76,13 +77,14 @@ xs $J $JS world-clock false
 xs $J $JS accessibility-menu false
 xs $J $JS clock-menu-position 0               # centre
 
-xs weatheroclock@CleoMenezesJr.github.io org.gnome.shell.extensions.weather-oclock weather-after-clock true
 xs kiwimenu@kemma org.gnome.shell.extensions.kiwimenu icon 0   # GNOME foot
 xs vicinae@dagimg-dot org.gnome.shell.extensions.vicinae show-status-indicator false   # Vicinae already has a tray icon
 
 # --- dock (Ubuntu Dock = Dash to Dock fork): floating, bottom, themed ------
 # (No Vitals/System Monitor in the bar: Vitals coincided with the 2026-10-11
-#  login hang; the conky System card shows CPU/RAM/disk/battery instead.)
+#  login hang; the conky System card shows CPU/RAM/disk/battery instead.
+#  No Weather O'Clock either: enabling it froze GNOME Shell at login on
+#  2026-10-11, bisected one extension at a time.)
 D=org.gnome.shell.extensions.dash-to-dock
 gsettings set $D dock-position BOTTOM
 gsettings set $D extend-height false

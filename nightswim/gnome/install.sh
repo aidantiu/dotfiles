@@ -2,7 +2,7 @@
 # Nightswim GNOME: fetch everything the desktop rice needs, user-local, no sudo.
 #   shell extensions (extensions.gnome.org, matched to the running shell),
 #   adw-gtk3, WhiteSur icons, Future-cyan cursors, Adwaita Sans,
-#   GNOME Weather (flatpak, feeds Weather O'Clock), Vicinae, conky AppImage.
+#   Vicinae, conky AppImage.
 # Safe to re-run: present items are skipped (FORCE=1 refetches).
 # Then run nightswim/desktop.sh to apply settings.
 set -euo pipefail
@@ -23,7 +23,6 @@ EXTS=(
   user-theme@gnome-shell-extensions.gcampax.github.com
   blur-my-shell@aunetx
   just-perfection-desktop@just-perfection
-  weatheroclock@CleoMenezesJr.github.io
   kiwimenu@kemma
   vicinae@dagimg-dot   # clipboard + window APIs for Vicinae on Wayland
 )
@@ -68,13 +67,6 @@ if ! have "$DATA/fonts/adwaita"; then
   find "$TMP/adwaita-fonts-$ver" -name '*.ttf' -exec cp {} "$DATA/fonts/adwaita/" \;
   fc-cache -f "$DATA/fonts" >/dev/null
   say "installed Adwaita fonts $ver"
-fi
-
-# --- GNOME Weather: Weather O'Clock reads its location ----------------------
-if ! flatpak info org.gnome.Weather >/dev/null 2>&1; then
-  flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-  flatpak install --user -y --noninteractive flathub org.gnome.Weather
-  say "installed GNOME Weather (open it once and pick your city)"
 fi
 
 # --- Vicinae launcher -------------------------------------------------------
