@@ -4,7 +4,6 @@ modelRoles:
   plan: anthropic/claude-opus-5-5:high
   slow: anthropic/claude-opus-5-5:high
   task: anthropic/claude-sonnet-5-5
-  smol: anthropic/claude-sonnet-5-5:medium
   frontend: anthropic/claude-sonnet-5-5
   default: anthropic/claude-opus-5-5
 symbolPreset: unicode
