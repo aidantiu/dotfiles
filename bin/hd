@@ -308,7 +308,10 @@ def where(binary, env):
     name = session_from_socket()
     if not name:
         return
+    line = None
     for w in workspaces(binary, name, env):
+        # runs every 2s from the tab bar, so projects made any way (sidebar "new", closing one) get a fresh (N)
+        command([binary, "--session", name, "workspace", "report-metadata", w["workspace_id"], "--source", "hd", "--token", "idx=({})".format(w.get("number"))], env, False)
         if w.get("focused"):
             line = "({}) {}".format(w.get("number"), w.get("label"))
             number_tabs(binary, name, w["workspace_id"], env)
@@ -316,8 +319,8 @@ def where(binary, env):
             current_tab = next((i for i, t in enumerate(tabs, 1) if t.get("focused")), None)
             if current_tab:
                 line += "  tab {}/{}".format(current_tab, len(tabs))
-            print(line)
-            return
+    if line:
+        print(line)
 
 
 def pick(binary, env):
