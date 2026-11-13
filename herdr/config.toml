@@ -62,10 +62,10 @@ description = "Focus or create Yazi sidebar"
 [[keys.command]]
 key = "prefix+shift+n"
 type = "popup"
-command = "/bin/bash -c 'read -r -e -p \"Project dir: \" d; [ -n \"$d\" ] && exec \"$HOME/.local/bin/hd\" \"$d\"'"
-description = "Open project as a workspace"
-width = 60
-height = 5
+command = '"$HOME/.local/bin/hd" add'
+description = "Add a project (fuzzy folder picker)"
+width = "70%"
+height = "60%"
 
 [[keys.command]]
 key = "prefix+s"

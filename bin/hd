@@ -467,9 +467,9 @@ def ordinary(binary, dirs, resume=False):
 def main():
     args = sys.argv[1:]
     if args[:1] in (["-h"], ["--help"]):
-        print("Usage: hd [DIR...]   open each DIR as a workspace in the shared 'hd' session (default: cwd)\n       hd sidebar    toggle this tab's Yazi sidebar (focus/create, or close if already focused)\n       hd open FILE... open FILE(s) in micro in a new pane beside the main shell\n       hd pick       popup project switcher (Ctrl-S s)\n       hd renumber   refresh the (N) index shown next to each project")
+        print("Usage: hd [DIR...]   open each DIR as a workspace in the shared 'hd' session (default: cwd)\n       hd add        fuzzy-pick a folder and add it as a project (Ctrl-S Shift-N)\n       hd sidebar    toggle this tab's Yazi sidebar (focus/create, or close if already focused)\n       hd open FILE... open FILE(s) in micro in a new pane beside the main shell\n       hd pick       popup project switcher (Ctrl-S s)\n       hd renumber   refresh the (N) index shown next to each project")
         return
-    binary = os.environ.get("HERDR_BIN_PATH") if args[:1] in (["sidebar"], ["open"], ["pick"], ["where"]) else None
+    binary = os.environ.get("HERDR_BIN_PATH") if args[:1] in (["sidebar"], ["open"], ["pick"], ["where"], ["add"]) else None
     binary = binary or shutil.which("herdr")
     if not binary:
         fail("missing herdr; run brew install herdr yazi")
@@ -485,6 +485,9 @@ def main():
                 open_file(binary, name, target, os.environ.copy())
         finally:
             os.close(fd)
+        return
+    if args[:1] == ["add"]:
+        add(binary)
         return
     if args[:1] == ["pick"]:
         pick(binary, os.environ.copy())
@@ -514,6 +517,55 @@ def main():
         return
     home = os.path.realpath(os.path.expanduser("~"))
     ordinary(binary, args or [os.getcwd()], resume=not args and os.path.realpath(os.getcwd()) == home)
+
+
+PRUNE = (".*", "node_modules", "Library", "Applications", "Pictures", "Music", "Movies",
+         "__pycache__", "venv", "target", "dist", "build")
+
+
+def choose_folder():
+    home = os.path.expanduser("~")
+    fzf = shutil.which("fzf")
+    if not fzf:
+        while True:
+            try:
+                typed = input("Project dir (empty to cancel): ").strip()
+            except EOFError:
+                return None
+            if not typed:
+                return None
+            path = os.path.realpath(os.path.expanduser(typed))
+            if os.path.isdir(path):
+                return path
+            print("not a folder: " + path)
+    prune = []
+    for name in PRUNE:
+        prune += ["-name", name, "-o"]
+    found = subprocess.run(["find", home, "-mindepth", "1", "-maxdepth", "4", "("] + prune[:-1] + [")", "-prune", "-o", "-type", "d", "-print"],
+                           stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True).stdout.splitlines()
+    shown = "\n".join("~" + p[len(home):] for p in sorted(found, key=lambda p: (p.count("/"), p.lower())))
+    picked = subprocess.run([fzf, "--print-query", "--layout", "reverse", "--prompt", "Add project > ",
+                             "--header", "type to search · Enter add · Esc cancel · or type a full path",
+                             "--color", "hl:#e8a95b,hl+:#e8a95b,pointer:#e8a95b,prompt:#9a8cc8,header:#6b6f9a"],
+                            input=shown, stdout=subprocess.PIPE, text=True)
+    lines = picked.stdout.splitlines()
+    if picked.returncode not in (0, 1) or not lines:
+        return None
+    choice = lines[1] if len(lines) > 1 else lines[0]
+    path = os.path.realpath(os.path.expanduser(choice.strip()))
+    return path if os.path.isdir(path) else None
+
+
+def add(binary):
+    path = choose_folder()
+    if not path:
+        return
+    try:
+        ordinary(binary, [path])
+    except SystemExit as error:
+        if error.code:
+            input("press Enter to close")
+        raise
 
 
 if __name__ == "__main__":
