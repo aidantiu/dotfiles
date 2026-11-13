@@ -1,0 +1,15 @@
+# Nightswim palette (nightswim/palette.sh)
+[mgr]
+cwd = { fg = "#8cc4d4" }
+hovered = { fg = "#0e1328", bg = "#e8a95b", bold = true }
+marker_selected = { fg = "#86b3a0", bg = "#86b3a0" }
+marker_copied = { fg = "#e8a95b", bg = "#e8a95b" }
+marker_cut = { fg = "#c9566b", bg = "#c9566b" }
+border_style = { fg = "#2a2f55" }
+
+[filetype]
+rules = [
+  { url = "*/", fg = "#8497d6" },
+  { url = "*", fg = "#d6cfe8" },
+  { url = ".*", fg = "#6b6f9a" },
+]

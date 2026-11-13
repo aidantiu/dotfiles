@@ -1,0 +1,12 @@
+{
+    "colorscheme": "nightswim",
+    "truecolor": "auto",
+    "tabsize": 2,
+    "tabstospaces": true,
+    "ruler": true,
+    "diffgutter": true,
+    "scrollbar": true,
+    "statusformatl": "$(filename) $(modified)($(line),$(col)) $(opt:filetype)",
+    "mkparents": true,
+    "autosave": 1
+}

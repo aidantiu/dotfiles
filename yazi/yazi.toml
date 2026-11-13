@@ -1,0 +1,19 @@
+[mgr]
+ratio = [0, 1, 0]
+show_hidden = true
+linemode = "none"
+show_symlink = false
+
+[opener]
+edit = [{ run = '"$HOME/.local/bin/hd" open %s', block = true, desc = "micro (new pane)", for = "unix" }]
+
+[open]
+prepend_rules = [
+  { mime = "text/*", use = "edit" },
+  { mime = "application/{json,x-yaml,toml,javascript,x-sh}", use = "edit" },
+  { url = "*.{ts,tsx,js,jsx,toml,yaml,yml,json,md,lua,py,rs,go,sh,zsh,conf,env}", use = "edit" },
+  { url = "*", mime = "inode/x-empty", use = "edit" },
+]
+
+[plugin]
+preloaders = []

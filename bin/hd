@@ -1,0 +1,517 @@
+#!/usr/bin/env python3
+import fcntl
+import hashlib
+import json
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+
+def fail(message):
+    print("hd: " + message, file=sys.stderr)
+    raise SystemExit(1)
+
+
+def command(args, env=None, check=True):
+    result = subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    if check and result.returncode:
+        fail(result.stderr.strip() or "command failed: " + shlex.join(args))
+    return result
+
+
+def data(args, env=None):
+    result = command(args, env)
+    try:
+        obj = json.loads(result.stdout)
+    except (ValueError, TypeError):
+        fail("invalid JSON from " + shlex.join(args))
+    if not obj.get("ok", True):
+        fail(str(obj.get("error", "Herdr API request failed")))
+    return obj
+
+
+def api_env(clear=True):
+    env = os.environ.copy()
+    if clear:
+        for key in ("HERDR_SOCKET_PATH", "HERDR_SESSION", "HERDR_SESSION_NAME", "HERDR_MACHINE", "HERDR_REMOTE"):
+            env.pop(key, None)
+    return env
+
+
+def api(binary, name, args, env):
+    return [binary, "--session", name] + args
+
+
+def locked(socket_path):
+    directory = Path.home() / ".config/herdr"
+    directory.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(os.fsencode(os.path.abspath(socket_path))).hexdigest()[:12]
+    fd = os.open(str(directory / ("hd-" + digest + ".lock")), os.O_CREAT | os.O_RDWR, 0o600)
+    fcntl.flock(fd, fcntl.LOCK_EX)
+    return fd
+
+
+def get_session(sessions, name):
+    return next((s for s in sessions if s.get("name") == name), None)
+
+
+def ensure_server(binary, name, cwd, env):
+    result = data([binary, "session", "list", "--json"], env)
+    session = get_session(result.get("sessions", []), name)
+    if session and session.get("running"):
+        return
+    session_dir = Path.home() / ".config/herdr/sessions" / name
+    socket_path = session_dir / "herdr.sock"
+    child = subprocess.Popen([binary, "--session", name, "server"], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=cwd, env=env, start_new_session=True)
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        if child.poll() is not None:
+            fail("Herdr server failed to start; inspect " + str(session_dir / "herdr-server.log"))
+        time.sleep(0.05)
+        check = command([binary, "--session", name, "workspace", "list"], env, False)
+        if check.returncode == 0:
+            return
+    fail("Herdr server startup timed out; inspect " + str(session_dir / "herdr-server.log"))
+
+
+def result(obj, key):
+    return obj.get("result", {}).get(key, {})
+
+
+def workspaces(binary, name, env):
+    return result(data([binary, "--session", name, "workspace", "list"], env), "workspaces")
+
+
+def panes(binary, name, workspace_id, env):
+    return result(data([binary, "--session", name, "pane", "list", "--workspace", workspace_id], env), "panes")
+
+
+def current(binary, name, pane_id, env):
+    clean = env.copy()
+    for key in ("HERDR_PANE_ID", "HERDR_ACTIVE_PANE_ID", "HERDR_ACTIVE_TAB_ID", "HERDR_ACTIVE_WORKSPACE_ID"):
+        clean.pop(key, None)
+    args = [binary, "--session", name, "pane", "current"] + (["--pane", pane_id] if pane_id else [])
+    return result(data(args, clean), "pane")
+
+
+def focus_pane(binary, name, tab_id, target, pane_list, env):
+    command([binary, "--session", name, "tab", "focus", tab_id], env)
+    command([binary, "--session", name, "pane", "zoom", target, "--off"], env)
+    cur = current(binary, name, None, env)
+    if cur.get("pane_id") == target or len(pane_list) <= 1:
+        return
+    others = sorted(p.get("pane_id") for p in pane_list if p.get("pane_id") != target)
+    for source in others:
+        for direction in ("left", "right", "up", "down"):
+            neighbor = data([binary, "--session", name, "pane", "neighbor", "--pane", source, "--direction", direction], env)
+            near = result(neighbor, "neighbor").get("neighbor_pane_id")
+            if near == target:
+                focused = data([binary, "--session", name, "pane", "focus", "--pane", source, "--direction", direction], env)
+                if result(focused, "focus").get("focused_pane_id") == target:
+                    return
+    fail("sidebar exists but this layout needs mouse or arrow-key focus")
+
+
+def process_info(binary, name, pane_id, env):
+    return result(data([binary, "--session", name, "pane", "process-info", "--pane", pane_id], env), "process_info")
+
+
+def is_yazi(info):
+    for process in info.get("foreground_processes", []):
+        exe = process.get("argv0") or process.get("name", "")
+        if os.path.basename(exe).lstrip("-") == "yazi":
+            return True
+    return False
+
+
+SHELLS = {"sh", "bash", "zsh", "fish", "dash", "ksh", "nu"}
+
+
+def is_idle_shell(info):
+    shell_pid = info.get("shell_pid")
+    records = info.get("foreground_processes", [])
+    if len(records) != 1 or records[0].get("pid") != shell_pid:
+        return False
+    record = records[0]
+    names = {os.path.basename(str(record.get(k) or "")).lstrip("-") for k in ("argv0", "name")}
+    return bool(names & SHELLS)
+
+
+def run_yazi(binary, name, pane_id, project, env):
+    path = shutil.which("yazi")
+    if not path:
+        fail("missing yazi; run brew install herdr yazi")
+    quoted = "exec {} {}".format(shlex.quote(os.path.realpath(path)), shlex.quote(project))
+    command([binary, "--session", name, "pane", "run", pane_id, quoted], env)
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        info = process_info(binary, name, pane_id, env)
+        if is_yazi(info):
+            return
+        time.sleep(0.05)
+    fail("Yazi did not become the sidebar foreground process")
+
+
+def sidebar(binary, name, project, env, focus_new=False, pane_id=None, require_context=True):
+    pane_id = pane_id or os.environ.get("HERDR_ACTIVE_PANE_ID") or os.environ.get("HERDR_PANE_ID")
+    if require_context and (not os.environ.get("HERDR_SOCKET_PATH") or not pane_id):
+        fail("sidebar requires a Herdr pane")
+    if not pane_id:
+        fail("unable to resolve current Herdr pane")
+    active = current(binary, name, pane_id, env)
+    tab_id, workspace_id = active.get("tab_id"), active.get("workspace_id")
+    if not tab_id or not workspace_id:
+        fail("unable to resolve active Herdr tab and workspace")
+    all_panes = panes(binary, name, workspace_id, env)
+    tab_panes = [p for p in all_panes if p.get("tab_id") == tab_id]
+    owned = [p for p in tab_panes if p.get("label") == "hd:yazi"]
+    if len(owned) > 1:
+        fail("multiple sidebar panes; leaving them unchanged")
+    if owned:
+        target = owned[0]
+        info = process_info(binary, name, target["pane_id"], env)
+        if not info.get("shell_pid") or not info.get("foreground_processes"):
+            fail("sidebar process information unavailable; leaving it unchanged")
+        if focus_new and is_yazi(info) and target["pane_id"] == active.get("pane_id") and len(tab_panes) > 1:
+            command([binary, "--session", name, "pane", "close", target["pane_id"]], env)
+            return
+        if not is_yazi(info):
+            if not is_idle_shell(info):
+                fail("sidebar pane is busy; leaving it unchanged")
+            run_yazi(binary, name, target["pane_id"], project, env)
+        if len(tab_panes) == 1 and not focus_new:
+            split = data([binary, "--session", name, "pane", "split", target["pane_id"], "--direction", "right", "--ratio", "0.25", "--cwd", project, "--focus"], env)
+            main = result(split, "pane").get("pane_id")
+            if not main:
+                fail("unable to recreate main shell beside sidebar")
+            command([binary, "--session", name, "pane", "rename", main, "hd:main"], env)
+            return
+        if focus_new:
+            focus_pane(binary, name, tab_id, target["pane_id"], tab_panes, env)
+        return
+    source = active.get("pane_id") or pane_id
+    split = data([binary, "--session", name, "pane", "split", source, "--direction", "right", "--ratio", "0.25", "--cwd", project, "--focus"], env)
+    created = result(split, "pane").get("pane_id")
+    if not created:
+        fail("Herdr did not return the sidebar pane id")
+    command([binary, "--session", name, "pane", "swap", "--source-pane", source, "--target-pane", created], env)
+    command([binary, "--session", name, "pane", "rename", created, "hd:yazi"], env)
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        info = process_info(binary, name, created, env)
+        if info.get("shell_pid") and is_idle_shell(info):
+            break
+        time.sleep(0.05)
+    else:
+        fail("sidebar shell did not become ready")
+    run_yazi(binary, name, created, project, env)
+    if focus_new:
+        focus_pane(binary, name, tab_id, created, tab_panes + [{"pane_id": created}], env)
+    else:
+        focus_pane(binary, name, tab_id, source, tab_panes + [{"pane_id": created}], env)
+
+SESSION = os.environ.get("HD_SESSION", "hd")
+
+
+def find_workspace(binary, name, path, env):
+    entries = workspaces(binary, name, env)
+    for w in entries:
+        for pane in panes(binary, name, w["workspace_id"], env):
+            if pane.get("label") == "hd:yazi" and pane.get("foreground_cwd") and os.path.realpath(pane["foreground_cwd"]) == path:
+                return w, entries
+    return None, entries
+
+
+def workspace_label(path, entries):
+    base = os.path.basename(path) or path
+    taken = {w.get("label") for w in entries}
+    if base in taken:
+        base = "{} ({})".format(base, os.path.basename(os.path.dirname(path)) or "/")
+    return base
+
+
+def is_micro(info):
+    for process in info.get("foreground_processes", []):
+        names = {os.path.basename(str(process.get(k) or "")).lstrip("-") for k in ("argv0", "name")}
+        if "micro" in names:
+            return True
+    return False
+
+
+def open_file(binary, name, target, env):
+    pane_id = os.environ.get("HERDR_PANE_ID") or os.environ.get("HERDR_ACTIVE_PANE_ID")
+    if not pane_id:
+        fail("open requires a Herdr pane")
+    micro = shutil.which("micro")
+    if not micro:
+        fail("missing micro; run brew install micro")
+    path = os.path.abspath(os.path.expanduser(target))
+    active = current(binary, name, pane_id, env)
+    tab_id, workspace_id = active.get("tab_id"), active.get("workspace_id")
+    if not tab_id or not workspace_id:
+        fail("unable to resolve active Herdr tab and workspace")
+    tab_panes = [p for p in panes(binary, name, workspace_id, env) if p.get("tab_id") == tab_id]
+    command([binary, "--session", name, "pane", "zoom", pane_id, "--off"], env, False)
+    editors = [p for p in tab_panes if p.get("label") == "hd:edit"]
+    if editors:
+        editor = editors[0]["pane_id"]
+        if not is_micro(process_info(binary, name, editor, env)):
+            fail("editor pane is busy; leaving it unchanged")
+        # open as a new micro tab inside the existing editor pane
+        command([binary, "--session", name, "pane", "send-keys", editor, "ctrl+e"], env)
+        command([binary, "--session", name, "pane", "send-text", editor, "tab " + json.dumps(path)], env)
+        command([binary, "--session", name, "pane", "send-keys", editor, "enter"], env)
+        focus_pane(binary, name, tab_id, editor, tab_panes, env)
+        return
+    anchor = next((p["pane_id"] for p in tab_panes if p.get("label") == "hd:main"), None)
+    anchor = anchor or next((p["pane_id"] for p in tab_panes if p.get("label") != "hd:yazi"), None) or pane_id
+    split = data([binary, "--session", name, "pane", "split", anchor, "--direction", "right", "--ratio", "0.5", "--cwd", os.path.dirname(path), "--focus"], env)
+    created = result(split, "pane").get("pane_id")
+    if not created:
+        fail("Herdr did not return the editor pane id")
+    command([binary, "--session", name, "pane", "rename", created, "hd:edit"], env)
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        info = process_info(binary, name, created, env)
+        if info.get("shell_pid") and is_idle_shell(info):
+            break
+        time.sleep(0.05)
+    else:
+        fail("editor shell did not become ready")
+    command([binary, "--session", name, "pane", "run", created, "exec {} {}".format(shlex.quote(micro), shlex.quote(path))], env)
+
+
+def session_from_socket():
+    socket = os.environ.get("HERDR_SOCKET_PATH")
+    if not socket:
+        return None
+    session_dir = Path(socket).parent
+    return session_dir.name if session_dir.parent.name == "sessions" else "default"
+
+
+def number_tabs(binary, name, workspace_id, env):
+    tabs = result(data([binary, "--session", name, "tab", "list", "--workspace", workspace_id], env), "tabs")
+    for position, tab in enumerate(tabs, 1):
+        base = re.sub(r"^\d+(\s+|$)", "", tab.get("label") or "")
+        wanted = "{} {}".format(position, base) if base else str(position)
+        if tab.get("label") != wanted:
+            command([binary, "--session", name, "tab", "rename", tab["tab_id"], wanted], env, False)
+    return len(tabs)
+
+
+def where(binary, env):
+    name = session_from_socket()
+    if not name:
+        return
+    for w in workspaces(binary, name, env):
+        if w.get("focused"):
+            line = "({}) {}".format(w.get("number"), w.get("label"))
+            number_tabs(binary, name, w["workspace_id"], env)
+            tabs = result(data([binary, "--session", name, "tab", "list", "--workspace", w["workspace_id"]], env), "tabs")
+            current_tab = next((i for i, t in enumerate(tabs, 1) if t.get("focused")), None)
+            if current_tab:
+                line += "  tab {}/{}".format(current_tab, len(tabs))
+            print(line)
+            return
+
+
+def pick(binary, env):
+    import select
+    import termios
+    import tty
+
+    name = session_from_socket()
+    if not name:
+        fail("pick requires a Herdr pane")
+    entries = workspaces(binary, name, env)
+    if not entries:
+        return
+    index = next((i for i, w in enumerate(entries) if w.get("focused")), 0)
+    fd = sys.stdin.fileno()
+    saved = termios.tcgetattr(fd)
+    out = sys.stdout
+    state_mark = {"working": "~", "blocked": "!", "done": "+", "idle": " "}
+
+    def render():
+        cols, rows = shutil.get_terminal_size((50, 12))
+        visible = max(1, rows - 4)
+        top = min(max(0, index - visible + 1), max(0, len(entries) - visible))
+        out.write("\x1b[2J\x1b[H\x1b[?25l")
+        head = " Projects  Enter open · 1-9 jump · Esc close"
+        out.write("\x1b[1;38;2;232;169;91m{}\x1b[0m\r\n\r\n".format(head[:cols].ljust(cols)))
+        for i in range(top, min(len(entries), top + visible)):
+            w = entries[i]
+            mark = state_mark.get(w.get("agent_status"), " ")
+            cur = "*" if w.get("focused") else " "
+            label = str(w.get("label"))
+            room = max(4, cols - 12)
+            if len(label) > room:
+                label = label[: room - 1] + "…"
+            line = " ({}) {} {} {}".format(w.get("number"), cur, label, mark).ljust(cols)[:cols]
+            if i == index:
+                out.write("\x1b[38;2;14;19;40;48;2;232;169;91m{}\x1b[0m\r\n".format(line))
+            else:
+                out.write("\x1b[38;2;214;207;232m{}\x1b[0m\r\n".format(line))
+        if len(entries) > visible:
+            out.write("\x1b[38;2;107;111;154m{}\x1b[0m".format(" {}/{}  ↑↓ scroll".format(index + 1, len(entries)).ljust(cols)[:cols]))
+        out.flush()
+
+    chosen = None
+    try:
+        tty.setcbreak(fd)
+        while True:
+            render()
+            key = os.read(fd, 8)
+            if key in (b"\x1b[A", b"k", b"\x1bOA"):
+                index = (index - 1) % len(entries)
+            elif key in (b"\x1b[B", b"j", b"\x1bOB"):
+                index = (index + 1) % len(entries)
+            elif key in (b"\r", b"\n"):
+                chosen = entries[index]
+                break
+            elif key.isdigit() and 1 <= int(key) <= len(entries):
+                chosen = entries[int(key) - 1]
+                break
+            elif key in (b"q", b"\x03", b"\x04") or key == b"\x1b":
+                break
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, saved)
+        out.write("\x1b[?25h")
+        out.flush()
+    if chosen and not chosen.get("focused"):
+        command([binary, "--session", name, "workspace", "focus", chosen["workspace_id"]], env)
+
+
+def renumber(binary, name, env):
+    for w in workspaces(binary, name, env):
+        command([binary, "--session", name, "workspace", "report-metadata", w["workspace_id"], "--source", "hd", "--token", "idx=({})".format(w.get("number"))], env)
+        number_tabs(binary, name, w["workspace_id"], env)
+
+
+def provision(binary, name, path, env):
+    workspace, entries = find_workspace(binary, name, path, env)
+    if workspace is None:
+        created = data([binary, "--session", name, "workspace", "create", "--cwd", path, "--label", workspace_label(path, entries), "--focus"], env)
+        w = result(created, "workspace")
+        tab_id = result(created, "tab").get("tab_id")
+        root = result(created, "root_pane").get("pane_id")
+        if not all((w.get("workspace_id"), tab_id, root)):
+            fail("workspace create returned incomplete ids")
+        command([binary, "--session", name, "pane", "rename", root, "hd:yazi"], env)
+        split = data([binary, "--session", name, "pane", "split", root, "--direction", "right", "--ratio", "0.25", "--cwd", path, "--focus"], env)
+        main_id = result(split, "pane").get("pane_id")
+        if not main_id:
+            fail("pane split returned no pane id")
+        command([binary, "--session", name, "pane", "rename", main_id, "hd:main"], env)
+        run_yazi(binary, name, root, path, env)
+        focus_pane(binary, name, tab_id, main_id, panes(binary, name, w["workspace_id"], env), env)
+        return
+    wid = workspace["workspace_id"]
+    command([binary, "--session", name, "workspace", "focus", wid], env)
+    active = current(binary, name, None, env)
+    active_tab = active.get("tab_id")
+    if not active_tab:
+        return
+    sidebar(binary, name, path, env, False, active.get("pane_id"), False)
+    tab_panes = [p for p in panes(binary, name, wid, env) if p.get("tab_id") == active_tab]
+    main = next((p.get("pane_id") for p in tab_panes if p.get("label") == "hd:main"), None)
+    if not main:
+        main = next((p.get("pane_id") for p in tab_panes if p.get("label") != "hd:yazi"), None)
+    if main:
+        focus_pane(binary, name, active_tab, main, tab_panes, env)
+
+
+def ordinary(binary, dirs, resume=False):
+    inside = os.environ.get("HERDR_SOCKET_PATH")
+    if inside:
+        socket_dir = Path(os.environ["HERDR_SOCKET_PATH"]).parent
+        name = socket_dir.name if socket_dir.parent.name == "sessions" else None
+        if not name:
+            fail("inside the default Herdr session; run hd from outside Herdr to use the hd session")
+    else:
+        if os.environ.get("TMUX"):
+            fail("detach from tmux first so Ctrl-S reaches Herdr")
+        name = SESSION
+    paths = [os.path.realpath(os.path.expanduser(d)) for d in dirs]
+    for path in paths:
+        if not os.path.isdir(path):
+            fail("not a directory: " + path)
+    env = api_env()
+    socket_path = Path.home() / ".config/herdr/sessions" / name / "herdr.sock"
+    fd = locked(str(socket_path))
+    try:
+        ensure_server(binary, name, os.path.expanduser("~"), env)
+        # bare `hd` from $HOME (a new terminal) resumes where you left off instead of focusing ~
+        if not (resume and workspaces(binary, name, env)):
+            for path in paths:
+                provision(binary, name, path, env)
+        renumber(binary, name, env)
+    finally:
+        os.close(fd)
+    if inside:
+        return
+    attach = [binary, "--session", name]
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        os.execvpe(binary, attach, env)
+    print(shlex.join(attach))
+
+
+def main():
+    args = sys.argv[1:]
+    if args[:1] in (["-h"], ["--help"]):
+        print("Usage: hd [DIR...]   open each DIR as a workspace in the shared 'hd' session (default: cwd)\n       hd sidebar    toggle this tab's Yazi sidebar (focus/create, or close if already focused)\n       hd open FILE... open FILE(s) in micro in a new pane beside the main shell\n       hd pick       popup project switcher (Ctrl-S s)\n       hd renumber   refresh the (N) index shown next to each project")
+        return
+    binary = os.environ.get("HERDR_BIN_PATH") if args[:1] in (["sidebar"], ["open"], ["pick"], ["where"]) else None
+    binary = binary or shutil.which("herdr")
+    if not binary:
+        fail("missing herdr; run brew install herdr yazi")
+    if args[:1] == ["open"]:
+        socket = os.environ.get("HERDR_SOCKET_PATH")
+        if not socket or len(args) < 2:
+            fail("usage (inside Herdr): hd open FILE...")
+        session_dir = Path(socket).parent
+        name = session_dir.name if session_dir.parent.name == "sessions" else "default"
+        fd = locked(socket)
+        try:
+            for target in args[1:]:
+                open_file(binary, name, target, os.environ.copy())
+        finally:
+            os.close(fd)
+        return
+    if args[:1] == ["pick"]:
+        pick(binary, os.environ.copy())
+        return
+    if args[:1] == ["where"]:
+        where(binary, os.environ.copy())
+        return
+    if args[:1] == ["renumber"]:
+        socket = os.environ.get("HERDR_SOCKET_PATH")
+        session_dir = Path(socket).parent if socket else None
+        name = session_dir.name if session_dir is not None and session_dir.parent.name == "sessions" else SESSION
+        renumber(binary, name, api_env(clear=socket is None))
+        return
+    if args[:1] == ["sidebar"]:
+        socket = os.environ.get("HERDR_SOCKET_PATH")
+        if not socket:
+            fail("sidebar requires a Herdr pane")
+        fd = locked(socket)
+        try:
+            session_dir = Path(socket).parent
+            name = session_dir.name if session_dir.parent.name == "sessions" else "default"
+            pane = os.environ.get("HERDR_ACTIVE_PANE_ID") or os.environ.get("HERDR_PANE_ID")
+            active = current(binary, name, pane, os.environ.copy())
+            sidebar(binary, name, active.get("cwd") or os.getcwd(), os.environ.copy(), True)
+        finally:
+            os.close(fd)
+        return
+    home = os.path.realpath(os.path.expanduser("~"))
+    ordinary(binary, args or [os.getcwd()], resume=not args and os.path.realpath(os.getcwd()) == home)
+
+
+if __name__ == "__main__":
+    main()

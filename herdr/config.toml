@@ -1,0 +1,141 @@
+onboarding = false
+
+# Mirrors active tmux.conf + nightswim.conf bindings; tmux.reset.conf is dormant.
+# Ctrl-S r enters resize mode (arrows resize, Esc leaves).
+# Plugin-only bindings are not recreated. Resize uses Herdr's proportional steps.
+# Ctrl-S backslash focuses or creates the tab-local Yazi sidebar.
+# Projects are workspaces in one shared "hd" session: Ctrl-S s/w switches, Ctrl-S N opens a new one.
+[keys]
+prefix = "ctrl+s"
+split_vertical = "prefix+percent"
+split_horizontal = "prefix+double_quote"
+focus_pane_left = "prefix+left"
+focus_pane_down = "prefix+down"
+focus_pane_up = "prefix+up"
+focus_pane_right = "prefix+right"
+new_tab = "prefix+c"
+next_tab = ["prefix+n", "prefix+ctrl+n"]
+previous_tab = "prefix+ctrl+p"
+switch_tab = "prefix+1..9"
+rename_tab = "prefix+comma"
+zoom = "prefix+z"
+copy_mode = "prefix+["
+detach = "prefix+d"
+reload_config = "prefix+shift+r"
+last_pane = "prefix+semicolon"
+resize_pane_left = ["prefix+ctrl+left", "prefix+alt+left"]
+resize_pane_down = ["prefix+ctrl+down", "prefix+alt+down"]
+resize_pane_up = ["prefix+ctrl+up", "prefix+alt+up"]
+resize_pane_right = ["prefix+ctrl+right", "prefix+alt+right"]
+goto = "prefix+o"
+workspace_picker = "prefix+shift+w"
+toggle_sidebar = "prefix+b"
+switch_workspace = "prefix+shift+1..9"
+settings = ""
+open_notification_target = ""
+resize_mode = "prefix+r"
+rename_workspace = "prefix+$"
+rename_pane = ""
+close_workspace = ""
+new_workspace = ""
+close_pane = ""
+close_tab = ""
+swap_pane_left = ""
+swap_pane_down = ""
+swap_pane_up = ""
+swap_pane_right = ""
+
+[[keys.command]]
+key = "prefix+p"
+type = "popup"
+command = 'exec "${SHELL:-sh}"'
+description = "Scratch shell (Floax replacement)"
+width = "80%"
+height = "80%"
+
+[[keys.command]]
+key = "prefix+backslash"
+type = "shell"
+command = '"$HOME/.local/bin/hd" sidebar'
+description = "Focus or create Yazi sidebar"
+
+[[keys.command]]
+key = "prefix+shift+n"
+type = "popup"
+command = "/bin/bash -c 'read -r -e -p \"Project dir: \" d; [ -n \"$d\" ] && exec \"$HOME/.local/bin/hd\" \"$d\"'"
+description = "Open project as a workspace"
+width = 60
+height = 5
+
+[[keys.command]]
+key = "prefix+s"
+type = "popup"
+command = '"$HOME/.local/bin/hd" pick'
+description = "Project switcher (tmux session tree replacement)"
+width = 48
+height = 12
+
+[[keys.command]]
+key = "prefix+w"
+type = "popup"
+command = '"$HOME/.local/bin/hd" pick'
+description = "Project switcher"
+width = 48
+height = 12
+
+[[keys.command]]
+key = "prefix+x"
+type = "popup"
+command = "/bin/bash -c 'read -r -n 1 -p \"Close pane? [y/N] \" answer; case \"$answer\" in y|Y) exec \"$HERDR_BIN_PATH\" pane close \"$HERDR_ACTIVE_PANE_ID\";; esac'"
+description = "Confirm close pane"
+width = 40
+height = 5
+
+[[keys.command]]
+key = "prefix+ampersand"
+type = "popup"
+command = "/bin/bash -c 'read -r -n 1 -p \"Close tab? [y/N] \" answer; case \"$answer\" in y|Y) exec \"$HERDR_BIN_PATH\" tab close \"$HERDR_ACTIVE_TAB_ID\";; esac'"
+description = "Confirm close tab"
+width = 40
+height = 5
+
+[ui]
+prompt_new_tab_name = false
+sidebar_start_collapsed = false
+sidebar_width = 22
+sidebar_min_width = 18
+sidebar_max_width = 26
+window_title = "{workspace} / {tab}"
+tab_bar_right = [{ type = "command", command = '"$HOME/.local/bin/hd" where', interval_seconds = 2, timeout_seconds = 2 }, { type = "zoom" }]
+tab_bar_right_separator = "  "
+sidebar_collapsed_mode = "compact"
+status_indicators = "symbols"
+
+# Nightswim palette (nightswim/palette.sh); transparent panels like the tmux theme.
+[theme]
+name = "catppuccin"
+
+[theme.custom]
+accent = "#e8a95b"
+panel_bg = "reset"
+sidebar_bg = "reset"
+active_row_bg = "#2a2f55"
+selection_bg = "#2a2f55"
+surface0 = "#2a2f55"
+surface1 = "#2a2f55"
+surface_dim = "#0e1328"
+overlay0 = "#6b6f9a"
+overlay1 = "#6b6f9a"
+text = "#d6cfe8"
+subtext0 = "#bdb3d6"
+mauve = "#9a8cc8"
+green = "#86b3a0"
+yellow = "#e8a95b"
+red = "#c9566b"
+blue = "#8497d6"
+teal = "#8cc4d4"
+peach = "#d79bc9"
+
+[ui.sidebar.spaces]
+row_gap = 0
+rows = [[{ token = "$idx", fg = "#e8a95b", bold = true }, "workspace"]]
