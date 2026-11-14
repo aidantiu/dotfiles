@@ -55,6 +55,7 @@ link nightswim/systemd/vicinae-wait-for-tray.conf "$HOME/.config/systemd/user/vi
 link omp/config.yml      "$HOME/.omp/agent/config.yml"
 link omp/agents          "$HOME/.omp/agent/agents"   # custom sub-agents (frontend)
 link omp/themes          "$HOME/.omp/agent/themes"   # Nightswim TUI theme
+link omp/skills          "$HOME/.omp/agent/skills"   # OMP skills (headless herdr-web-browser)
 # Herdr + Yazi project workspace
 link herdr/config.toml "$HOME/.config/herdr/config.toml"
 link yazi/yazi.toml "$HOME/.config/yazi/yazi.toml"
@@ -63,6 +64,10 @@ link micro/settings.json "$HOME/.config/micro/settings.json"
 link micro/bindings.json "$HOME/.config/micro/bindings.json"
 link micro/colorschemes/nightswim.micro "$HOME/.config/micro/colorschemes/nightswim.micro"
 link bin/hd "$HOME/.local/bin/hd"
+# herdr-web-browser plugin: headless Chromium agents drive from the shell (builds with cargo)
+if command -v herdr >/dev/null && command -v cargo >/dev/null && ! herdr plugin list 2>/dev/null | grep -q herdr-web-browser; then
+  herdr plugin install MattJColes/herdr-web-browser --yes
+fi
 # nsws: toggle "new terminal gets its own workspace"
 link bin/nsws            "$HOME/.local/bin/nsws"
 # dot: Nightswim shortcut cheat sheet
