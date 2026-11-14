@@ -1,0 +1,5 @@
+# herdr-web-browser settings, linked to ~/.config/herdr/plugins/config/herdr-web-browser/config.toml
+# Alacritty has no image protocol, so draw the page with coloured text cells.
+# In Ghostty/kitty/WezTerm, delete this line for a full-resolution view.
+view_renderer = "blocks"
+home_page = "https://www.google.com"

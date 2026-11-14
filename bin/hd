@@ -467,9 +467,9 @@ def ordinary(binary, dirs, resume=False):
 def main():
     args = sys.argv[1:]
     if args[:1] in (["-h"], ["--help"]):
-        print("Usage: hd [DIR...]   open each DIR as a workspace in the shared 'hd' session (default: cwd)\n       hd add        fuzzy-pick a folder and add it as a project (Ctrl-S Shift-N)\n       hd sidebar    toggle this tab's Yazi sidebar (focus/create, or close if already focused)\n       hd open FILE... open FILE(s) in micro in a new pane beside the main shell\n       hd pick       popup project switcher (Ctrl-S s)\n       hd kill       close the current project after a y/n prompt (Ctrl-S x)\n       hd renumber   refresh the (N) index shown next to each project")
+        print("Usage: hd [DIR...]   open each DIR as a workspace in the shared 'hd' session (default: cwd)\n       hd add        fuzzy-pick a folder and add it as a project (Ctrl-S Shift-N)\n       hd sidebar    toggle this tab's Yazi sidebar (focus/create, or close if already focused)\n       hd browser    toggle the web browser view beside this pane (Ctrl-S Shift-B)\n       hd open FILE... open FILE(s) in micro in a new pane beside the main shell\n       hd pick       popup project switcher (Ctrl-S s)\n       hd kill       close the current project after a y/n prompt (Ctrl-S x)\n       hd renumber   refresh the (N) index shown next to each project")
         return
-    binary = os.environ.get("HERDR_BIN_PATH") if args[:1] in (["sidebar"], ["open"], ["pick"], ["where"], ["add"], ["kill"]) else None
+    binary = os.environ.get("HERDR_BIN_PATH") if args[:1] in (["sidebar"], ["open"], ["pick"], ["where"], ["add"], ["kill"], ["browser"]) else None
     binary = binary or shutil.which("herdr")
     if not binary:
         fail("missing herdr; run brew install herdr yazi")
@@ -485,6 +485,9 @@ def main():
                 open_file(binary, name, target, os.environ.copy())
         finally:
             os.close(fd)
+        return
+    if args[:1] == ["browser"]:
+        browser(binary)
         return
     if args[:1] == ["kill"]:
         kill_project(binary)
@@ -602,6 +605,45 @@ def kill_project(binary):
         target.get("number"), target.get("label"), target.get("pane_count"))
     if read_key("\x1b[1;38;2;232;169;91m" + prompt + "\x1b[0m", ("y", "n", "\x1b", "q")) == "y":
         command([binary, "--session", name, "workspace", "close", workspace_id], env)
+
+
+def is_browser_view(info):
+    return any("herdr-web-browser" in str(p.get("cmdline") or "") and str(p.get("cmdline") or "").endswith(" view")
+               for p in info.get("foreground_processes", []))
+
+
+def browser(binary):
+    """Ctrl-S Shift-B: open the herdr-web-browser view beside this pane, focus it, or close it if focused."""
+    name = session_from_socket()
+    pane_id = os.environ.get("HERDR_ACTIVE_PANE_ID") or os.environ.get("HERDR_PANE_ID")
+    if not name or not pane_id:
+        fail("browser requires a Herdr pane")
+    tool = shutil.which("herdr-web-browser") or os.path.expanduser("~/.local/bin/herdr-web-browser")
+    if not os.path.exists(tool):
+        fail("missing herdr-web-browser; run herdr plugin install MattJColes/herdr-web-browser")
+    env = os.environ.copy()
+    active = current(binary, name, pane_id, env)
+    tab_id = active.get("tab_id")
+    tab_panes = [p for p in panes(binary, name, active.get("workspace_id"), env) if p.get("tab_id") == tab_id]
+    views = [p for p in tab_panes if is_browser_view(process_info(binary, name, p["pane_id"], env))]
+    if views:
+        view = views[0]["pane_id"]
+        if view == pane_id:
+            command([binary, "--session", name, "pane", "close", view], env)
+        else:
+            focus_pane(binary, name, tab_id, view, tab_panes, env)
+        return
+    tabs = command([tool, "tabs", "--owner", pane_id], env, False).stdout.splitlines()
+    own = next((line for line in tabs if line.startswith("*")), "")
+    if own and "about:blank" not in own:
+        command([tool, "show", "--owner", pane_id], env)
+        return
+    home = "https://www.google.com"
+    config = Path.home() / ".config/herdr/plugins/config/herdr-web-browser/config.toml"
+    if config.exists():
+        match = re.search(r'^\s*home_page\s*=\s*"([^"]+)"', config.read_text(), re.M)
+        home = match.group(1) if match else home
+    command([tool, "open", home, "--show", "--owner", pane_id], env)
 
 
 if __name__ == "__main__":
