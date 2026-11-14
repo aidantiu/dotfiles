@@ -49,7 +49,7 @@ swap_pane_right = ""
 key = "prefix+p"
 type = "popup"
 command = 'exec "${SHELL:-sh}"'
-description = "Scratch shell (Floax replacement)"
+description = "hd · scratch shell popup"
 width = "80%"
 height = "80%"
 
@@ -57,13 +57,13 @@ height = "80%"
 key = "prefix+backslash"
 type = "shell"
 command = '"$HOME/.local/bin/hd" sidebar'
-description = "Focus or create Yazi sidebar"
+description = "hd · toggle Yazi file sidebar"
 
 [[keys.command]]
 key = "prefix+shift+n"
 type = "popup"
 command = '"$HOME/.local/bin/hd" add'
-description = "Add a project (fuzzy folder picker)"
+description = "hd · add project (folder picker)"
 width = "70%"
 height = "60%"
 
@@ -71,7 +71,7 @@ height = "60%"
 key = "prefix+s"
 type = "popup"
 command = '"$HOME/.local/bin/hd" pick'
-description = "Project switcher (tmux session tree replacement)"
+description = "hd · switch project (popup)"
 width = 48
 height = 12
 
@@ -79,7 +79,7 @@ height = 12
 key = "prefix+w"
 type = "popup"
 command = '"$HOME/.local/bin/hd" pick'
-description = "Project switcher"
+description = "hd · switch project (popup)"
 width = 48
 height = 12
 
@@ -87,7 +87,7 @@ height = 12
 key = "prefix+x"
 type = "popup"
 command = '"$HOME/.local/bin/hd" kill'
-description = "Kill this project (asks y/n)"
+description = "hd · kill project (y/n)"
 width = 62
 height = 7
 
@@ -95,7 +95,7 @@ height = 7
 key = "prefix+shift+x"
 type = "popup"
 command = "/bin/bash -c 'read -r -n 1 -p \"Close pane? [y/N] \" answer; case \"$answer\" in y|Y) exec \"$HERDR_BIN_PATH\" pane close \"$HERDR_ACTIVE_PANE_ID\";; esac'"
-description = "Confirm close pane"
+description = "hd · close pane (y/n)"
 width = 40
 height = 5
 
@@ -103,7 +103,7 @@ height = 5
 key = "prefix+ampersand"
 type = "popup"
 command = "/bin/bash -c 'read -r -n 1 -p \"Close tab? [y/N] \" answer; case \"$answer\" in y|Y) exec \"$HERDR_BIN_PATH\" tab close \"$HERDR_ACTIVE_TAB_ID\";; esac'"
-description = "Confirm close tab"
+description = "hd · close tab (y/n)"
 width = 40
 height = 5
 
