@@ -107,14 +107,6 @@ description = "hd · close tab (y/n)"
 width = 40
 height = 5
 
-# herdr-web-browser plugin (herdr plugin install MattJColes/herdr-web-browser).
-# Ctrl-S Shift-B: open the page view beside this pane (Google first time), focus it, or close it if focused.
-[[keys.command]]
-key = "prefix+shift+b"
-type = "shell"
-command = '"$HOME/.local/bin/hd" browser'
-description = "hd · toggle web browser beside this pane"
-
 [ui]
 prompt_new_tab_name = false
 sidebar_start_collapsed = false

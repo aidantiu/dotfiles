@@ -13,9 +13,3 @@ link micro/settings.json "$HOME/.config/micro/settings.json"
 link micro/bindings.json "$HOME/.config/micro/bindings.json"
 link micro/colorschemes/nightswim.micro "$HOME/.config/micro/colorschemes/nightswim.micro"
 link bin/hd "$HOME/.local/bin/hd"
-
-# herdr-web-browser plugin (builds with cargo; Ctrl-S Shift-B opens it)
-link herdr/plugins/herdr-web-browser.toml "$HOME/.config/herdr/plugins/config/herdr-web-browser/config.toml"
-if command -v herdr >/dev/null && command -v cargo >/dev/null && ! herdr plugin list 2>/dev/null | grep -q herdr-web-browser; then
-  herdr plugin install MattJColes/herdr-web-browser --yes
-fi
