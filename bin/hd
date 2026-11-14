@@ -467,9 +467,9 @@ def ordinary(binary, dirs, resume=False):
 def main():
     args = sys.argv[1:]
     if args[:1] in (["-h"], ["--help"]):
-        print("Usage: hd [DIR...]   open each DIR as a workspace in the shared 'hd' session (default: cwd)\n       hd add        fuzzy-pick a folder and add it as a project (Ctrl-S Shift-N)\n       hd sidebar    toggle this tab's Yazi sidebar (focus/create, or close if already focused)\n       hd open FILE... open FILE(s) in micro in a new pane beside the main shell\n       hd pick       popup project switcher (Ctrl-S s)\n       hd renumber   refresh the (N) index shown next to each project")
+        print("Usage: hd [DIR...]   open each DIR as a workspace in the shared 'hd' session (default: cwd)\n       hd add        fuzzy-pick a folder and add it as a project (Ctrl-S Shift-N)\n       hd sidebar    toggle this tab's Yazi sidebar (focus/create, or close if already focused)\n       hd open FILE... open FILE(s) in micro in a new pane beside the main shell\n       hd pick       popup project switcher (Ctrl-S s)\n       hd kill       close the current project after a y/n prompt (Ctrl-S x)\n       hd renumber   refresh the (N) index shown next to each project")
         return
-    binary = os.environ.get("HERDR_BIN_PATH") if args[:1] in (["sidebar"], ["open"], ["pick"], ["where"], ["add"]) else None
+    binary = os.environ.get("HERDR_BIN_PATH") if args[:1] in (["sidebar"], ["open"], ["pick"], ["where"], ["add"], ["kill"]) else None
     binary = binary or shutil.which("herdr")
     if not binary:
         fail("missing herdr; run brew install herdr yazi")
@@ -485,6 +485,9 @@ def main():
                 open_file(binary, name, target, os.environ.copy())
         finally:
             os.close(fd)
+        return
+    if args[:1] == ["kill"]:
+        kill_project(binary)
         return
     if args[:1] == ["add"]:
         add(binary)
@@ -566,6 +569,39 @@ def add(binary):
         if error.code:
             input("press Enter to close")
         raise
+
+
+def read_key(prompt, keys):
+    import termios
+    import tty
+
+    fd = sys.stdin.fileno()
+    saved = termios.tcgetattr(fd)
+    sys.stdout.write(prompt)
+    sys.stdout.flush()
+    try:
+        tty.setcbreak(fd)
+        while True:
+            key = os.read(fd, 8).decode(errors="ignore").lower()
+            if key in keys:
+                return key
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, saved)
+
+
+def kill_project(binary):
+    name = session_from_socket()
+    workspace_id = os.environ.get("HERDR_ACTIVE_WORKSPACE_ID")
+    if not name or not workspace_id:
+        fail("kill requires a Herdr pane")
+    env = os.environ.copy()
+    target = next((w for w in workspaces(binary, name, env) if w["workspace_id"] == workspace_id), None)
+    if not target:
+        fail("current project not found")
+    prompt = " Kill project ({}) {}?\r\n Closes its {} pane(s) and everything running in them.\r\n\r\n y = kill   n = keep ".format(
+        target.get("number"), target.get("label"), target.get("pane_count"))
+    if read_key("\x1b[1;38;2;232;169;91m" + prompt + "\x1b[0m", ("y", "n", "\x1b", "q")) == "y":
+        command([binary, "--session", name, "workspace", "close", workspace_id], env)
 
 
 if __name__ == "__main__":
