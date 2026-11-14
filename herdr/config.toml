@@ -107,6 +107,13 @@ description = "hd · close tab (y/n)"
 width = 40
 height = 5
 
+# herdr-web-browser plugin (herdr plugin install MattJColes/herdr-web-browser)
+[[keys.command]]
+key = "prefix+shift+b"
+type = "plugin_action"
+command = "herdr-web-browser.open"
+description = "hd · open web browser pane"
+
 [ui]
 prompt_new_tab_name = false
 sidebar_start_collapsed = false
