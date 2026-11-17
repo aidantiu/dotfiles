@@ -146,4 +146,4 @@ peach = "#d79bc9"
 
 [ui.sidebar.spaces]
 row_gap = 0
-rows = [[{ token = "$idx", fg = "#e8a95b", bold = true }, "state_icon", "workspace"]]
+rows = [["state_icon", { token = "$idx", fg = "#e8a95b", bold = true }, "workspace"]]
